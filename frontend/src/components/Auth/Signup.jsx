@@ -1,13 +1,10 @@
 import {
-  Stack,
-  HStack,
   VStack,
   FormControl,
   FormLabel,
   Input,
   InputGroup,
   InputRightAddon,
-  InputLeftAddon,
   Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
@@ -21,6 +18,8 @@ function Signup() {
   function handleChange() {
     setShow(!show);
   }
+  const postDetails = (pics) => {};
+  const submistHandler = () => {};
   return (
     <VStack spacing="5px">
       {/* name */}
@@ -67,11 +66,11 @@ function Signup() {
           <Input
             type="file"
             accept="image/*"
-            onChange={(e) => console.log(e.target.files[0])}
+            onChange={(e) => postDetails(e.target.files[0])}
           />
         </InputGroup>
       </FormControl>
-      <Button>submit</Button>
+      <Button onClick={() => submistHandler()}>submit</Button>
     </VStack>
   );
 }
