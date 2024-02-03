@@ -31,8 +31,19 @@ const registerUser = async (req, res) => {
   }
 };
 
-const authUser = (req, res) => {
+const authUser = async (req, res) => {
   const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (user && (await user.matchPassword(password))) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } else {
+    res.send("user does not exist");
+  }
 };
 
-module.exports = registerUser;
+module.exports = { registerUser, authUser };
