@@ -1,8 +1,7 @@
 // registerUser
 const getToken = require("../config/authwithjwt");
 const User = require("../Models/userModel");
-
-// 1st route
+// 1st routes
 const registerUser = async (req, res) => {
   const { name, email, password, pic } = req.body;
   if (!name || !email || !password) {
@@ -31,11 +30,14 @@ const registerUser = async (req, res) => {
   }
 };
 
+// 2nd routes
 const authUser = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
   if (user && (await user.matchPassword(password))) {
+    // make a note of this
+    return;
     res.json({
       _id: user._id,
       name: user.name,
@@ -46,4 +48,13 @@ const authUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, authUser };
+const allUser = async (req, res) => {
+  const keyword = req.query.search;
+  const regex = new RegExp(keyword, "i");
+  const users = await User.find({
+    $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }],
+  });
+  res.json(users);
+};
+
+module.exports = { registerUser, authUser, allUser };

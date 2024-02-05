@@ -2,6 +2,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const serverRouter = require("./routes/userRoutes.js");
+const chatRouter = require("./routes/chatRouter.js");
 const cors = require("cors"); // this prevents from cors
 const server = express();
 // to fix cors error
@@ -23,7 +24,7 @@ main();
 // Routes
 server.use(express.json()); // this is just a body parser
 server.use("/api/user", serverRouter);
-
+server.use("/api/chat", chatRouter);
 // Server Port and listening
 
 const port = process.env.PORT || 8080;
