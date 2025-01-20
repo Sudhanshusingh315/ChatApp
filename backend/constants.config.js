@@ -1,10 +1,12 @@
 import dotenv from 'dotenv'
 dotenv.config();
-const configFile = {
+export const configFile = {
     mongodbConnectionString: process.env.DATABASE,
     jwtSecrete: process.env.JWT_KEY,
-    PORT: process.PORT
+    PORT: process.env.PORT
 };
 
-
-export default configFile;
+export const responseStatus = {
+    SUCCESS:"SUCCESS",
+    FAIL:"FAIL"
+}

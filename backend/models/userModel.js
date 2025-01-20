@@ -25,4 +25,10 @@ const userSchema = new Schema({
         type: Number,
         require: false,
     },
+    profileSetup: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+export const User = mongoose.model('user', userSchema);
