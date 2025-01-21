@@ -1,0 +1,154 @@
+
+/* todo: add a font family popping */
+/* todo: add the padding to .em and not .rem*/
+
+*,*::before,*::after{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+img{
+    max-width: 100%;
+    display: block;
+}
+
+
+.chat-wrapper{
+    min-width: 750px;
+    max-width: 1144px;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: repeat(12,1fr);
+    background-color: var(--background-color) 
+}
+
+
+.sidebar{
+    /* todo: fixed the borded on the right side */
+    border-right: 1px solid #eeee;
+    grid-column-start: 1;
+    grid-column-end:7;
+}
+
+.chat-action{
+    display: grid;
+    grid-template-rows: repeat(3,auto);
+    padding:.75rem 1rem;
+    gap: .25rem;
+    .user-chat--info{
+        /* border: 2px solid red; */
+        display: flex;
+        justify-content:space-evenly ;
+        align-items: center;
+        gap:12px;
+        img{
+            width: 3.5rem;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+        }
+        .themes, .stories, .settings{
+            font-size: 2rem;
+            color: #eeee;
+        }
+        .themes{
+            margin-left: auto ;
+        }
+        
+    }
+    .chat-search{
+        padding:5px 5px;
+    }
+    .chat-search > input{
+        display: block;
+        width: 100%;
+        padding: .625rem .3125rem; 
+        border-radius: 100vw;
+        color: white;
+
+    }
+    .chat-search > input::placeholder{
+        color: #3B1E54;
+    }
+    .chat-search > input[type="text"]{
+        padding-inline-start:1rem ;
+    }
+}
+
+.messages-category{
+    display: flex;
+    padding: 5px; 
+    justify-content: start;
+    gap: 1rem;
+
+    p{
+        font-size: .875rem;
+        padding: 5px 8px;
+        border-radius: 100vw;
+        font-weight: 700;
+    }
+}
+
+
+
+
+
+.chat-inbox{
+    display: flex;
+    padding: .625rem 1rem; 
+    justify-content: space-around;
+    align-items: start;
+    gap: .75rem;
+    position: relative;
+    .chat-profile{
+        border-radius: 50%;
+        width: 50px;
+        aspect-ratio: 1/1;
+    }
+    
+    .chat-info{
+        justify-self: start;
+        flex:1;
+    }
+    .name{
+        margin-block-end: .15rem;
+    }
+    .last-message{
+        display: block;
+        width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: .75rem;
+        text-overflow: ellipsis;
+        opacity: .8;
+    }
+    .chat-data{
+        width: max-content;
+        font-size: .75rem; 
+    }
+    .number-of-messages{
+        margin-top: .6rem;
+        width: 1.5rem;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        font-size: .875rem;
+        justify-self: flex-end;
+        align-self: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+    }
+
+}
+.chat-inbox::after{
+    content: '';
+    display: block;
+    width: 81%;
+    height: 1px;
+    position: absolute;
+    background-color:#eeee; 
+    bottom: 0;
+    right: 0;
+    opacity: .2;
+}
