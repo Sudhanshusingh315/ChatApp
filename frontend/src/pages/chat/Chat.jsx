@@ -149,7 +149,7 @@ export default function Chat() {
                     </div>
                 </div>
                 {/* message box input */}
-                <div className="send-chat-configuration">
+                <div className="send-chat-configuration bg-secondary-400">
                     <p className="attachments">
                         <IoIosAttach/>
                     </p>
