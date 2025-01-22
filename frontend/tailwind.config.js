@@ -15,6 +15,10 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addVariant }) {
+      addVariant('child', '& > *');
+  }
+  ],
 }
 

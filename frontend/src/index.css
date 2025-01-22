@@ -4,7 +4,9 @@
 
 :root{
     --background-color:#1B1D26;
-    ---accent-color:#EEEEEE;
+    --accent-color:#EEEEEE;
+    --chat-bg-color:#1E1D2B;
+    background-color: #030303;
 }
 /* 1. Use a more-intuitive box-sizing model */
 *, *::before, *::after {
