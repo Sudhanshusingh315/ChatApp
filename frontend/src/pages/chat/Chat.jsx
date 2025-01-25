@@ -216,8 +216,12 @@ export default function Chat() {
                                 );
                             }
                         )}
+
+                       <div className="owner bg-secondary-400">
+                            <img className="message-image"  src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk=" alt="" />
+                            <p className="text-image">Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk</p>
+                       </div>
                     </div>
-                    {/* <img className="message-image" src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk=" alt="" /> */}
                     {/* <div className="reciever bg-[#1E1D2B]">
                             Lorem ipsum dolor sit amet consectetur, adipisicing
                             elit. Dolorum blanditiis molestias error?
