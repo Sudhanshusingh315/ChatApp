@@ -229,6 +229,9 @@ img {
         align-self: start;
         position: relative;
     }
+    .message-image{
+        
+    }
     /* todo make these before and after work
     else implement, the way google messages
     rcs has. 
