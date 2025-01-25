@@ -11,7 +11,9 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Password is Required"],
     },
-
+    userName: {
+        type: String,
+    },
     firstName: {
         type: String,
     },
@@ -29,6 +31,12 @@ const userSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    contacts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user",
+        },
+    ],
 });
 
-export const User = mongoose.model('user', userSchema);
+export const User = mongoose.model("user", userSchema);

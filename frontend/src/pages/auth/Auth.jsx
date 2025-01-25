@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import {useDispatch,useSelector} from "react-redux"; 
+import { authLogin } from "../../features/auth/authSlice";
 
 export default function Auth() {
     const [email, setEmail] = useState("");
@@ -8,49 +10,38 @@ export default function Auth() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [profileImage, setProfileImage] = useState("");
     const [login, setLogin] = useState(false);
-
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+
+
+
+    
     const handleLogin = async () => {
         // todo : make the toast notficication here.
-        // toddo: make the api request from redux store and not like this.
         // todo: remove unnecessary console logs.
+        // todo: Enter makes the user login
 
-        console.log("making api call for login");
-        const {data} = await axios({
-            method: "post",
-            url: "/api/auth/login",
-            data: {
-                email,
-                password,
-            },
-        });
-
-        // todo: do the same in signup component.
-        if(!data?.profileSetup){
+        const response = await dispatch(authLogin({email,password}))
+        console.log("response login",response);
+        if(!response?.payload?.profileSetup){
+            // todo: do the profile setup ui
             navigate('/profile');
         }
         else{
-            navigate('/chat');
+            console.log("navigate to chat")
+            navigate('/');
         }
-        // todo: handle the token save.
     };
 
     const handleSignup = async () => {
-        // toddo: make the api request from redux store and not like this.
+        // todo: make the singup reducer work, handle the edge case, should do as soon as possible but i have got other things to implement as well so!!!!
+        // todo: Enter makes the user signup
         if (password !== confirmPassword) {
             // todo: make the toast notification here
             console.log("error password and confirm password is not the same");
             return;
         }
-        console.log("making api call");
-        const result = await axios({
-            method: "post",
-            url: "/api/auth/signup",
-            data: {
-                email,
-                password,
-            },
-        });
+        const response = dispatch() 
         console.log(result);
     };
 

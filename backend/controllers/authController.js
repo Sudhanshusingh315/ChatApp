@@ -7,12 +7,14 @@ export const signup = async (req, res) => {
         // todo: handle if the user is already registered here.
         // todo: hash the password befor storing it in the database.
         const { email, password } = req.body;
+        console.log(`email ${email} password ${password}`);
         if (!email || !password) {
             throw new Error("Email or Password");
         }
         const user = await User.create({ email, password });
         const token = generateToken({ email, password });
-        return req.status(201).json({
+
+        return res.status(201).json({
             status: "success",
             userId: user.id,
             email,

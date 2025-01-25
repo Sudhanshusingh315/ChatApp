@@ -1,3 +1,4 @@
+import { useContext, useEffect, useRef, useState } from "react";
 import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
 import { CiSettings } from "react-icons/ci";
@@ -5,9 +6,46 @@ import { CiSearch } from "react-icons/ci";
 import { CiMenuKebab } from "react-icons/ci";
 import { IoIosAttach } from "react-icons/io";
 import { IoSendSharp } from "react-icons/io5";
-
-
+// todo: refactor the code, and break this into small components.
+import { SocketContext } from "../../context/SocketContex";
+import { useSelector } from "react-redux";
+import axios from 'axios';
 export default function Chat() {
+    const { socket } = useContext(SocketContext);
+    const { userInfo } = useSelector((state) => state.auth);
+    const [chatBox, setChatBox] = useState([]);
+
+
+
+    useEffect(() => { console.log("use effect ran");
+        console.log("socket value is ", socket);
+
+        if (socket || !socket?.connected) {
+            socket?.connect();
+            socket?.on("getOnlineUsers", (users) => {
+                console.log("online users", users);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off("getOnlineUsers");
+                socket.disconnect();
+            }
+            
+        };
+    }, [socket]);
+
+    useEffect(() => {
+        (async function(){
+            const {data} = await axios.get(`/api/searchContact/${userInfo?.userId}/myContact`,{
+                headers:{Authorization:`Bearer ${userInfo?.token}`}
+            });
+            setChatBox((prev)=>{
+                return [...prev,...data?.data[0]?.contactDetails];
+            })
+        })();
+    }, []);
     return (
         <div className="chat-wrapper">
             <div className="sidebar">
@@ -51,29 +89,37 @@ export default function Chat() {
                     </div>
                 </div>
                 <div className="chat-inboxes text-accent">
-                    <div className="chat-inbox ">
+                    {
+                        chatBox?.map((info,index)=>{
+                            return (<div className="chat-inbox ">
                         <img
                             className="chat-profile"
-                            src="https://i.pravatar.cc/300"
+                            src={info?.profileImage}
                             alt="profile image"
                         />
+                        {/* todo: replace with firstname and last name */}
                         <div className="chat-info">
-                            <p className="name">Santosh kumar</p>
+                            <p className="name">{`${info?.firstName} ${info?.lastName}`}</p>
                             <p className="last-message">
+                                {/* todo:last message, either send or recieve here. */}
                                 Happy makar sankaranti
                                 kjlkdajfjdlkajflkdajflkjfdsalfjkdfalkd
                             </p>
                         </div>
                         <div className="chat-date">
                             <p className="chat-data text-accent/80 ">
+                            {/* todo: last message, either sent or revieve here */}
                                 1/1/1970
                             </p>
                             <p className="number-of-messages bg-secondary-400">
                                 +9
                             </p>
                         </div>
-                    </div>
-                    <div className="chat-inbox">
+                    </div>)
+                        })
+                    }
+                    
+                    {/* <div className="chat-inbox">
                         <img
                             className="chat-profile"
                             src="https://i.pravatar.cc/300"
@@ -94,7 +140,7 @@ export default function Chat() {
                                 9
                             </p>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -103,11 +149,13 @@ export default function Chat() {
             <div className="chat-container">
                 {/* header */}
                 <div className="chat-header-section text-accent bg-primary/10">
-                    <img
-                        src="https://i.pravatar.cc/300"
-                        alt=""
-                    />
-                    <p className="chat-selected-user">Santosh Kumar</p>
+                    <img src="https://i.pravatar.cc/300" alt="" />
+                    <div className="user-info">
+                        <p className="chat-selected-user">Santosh Kumar</p>
+                        <span className="last-seen">
+                            last Seen Yesterday at 7:20 PM
+                        </span>
+                    </div>
                     <p className="search-icon">
                         <CiSearch />
                     </p>
@@ -118,42 +166,52 @@ export default function Chat() {
                 {/* chat component */}
                 <div className="chat-talking-section text-accent">
                     <div className="reciever bg-[#1E1D2B]">
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        Lorem ipsum dolor sit amet consectetur, adipisicing
+                        elit. Dolorum blanditiis molestias error?
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        Lorem ipsum dolor sit amet consectetur, adipisicing
+                        elit. Dolorum blanditiis molestias error?
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        consectetur, adipisicing elit. Dolorum blanditiis
+                        molestias error?
                     </div>
                     <div className="owner bg-secondary-400">
                         uga dignissimos molestiae!
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        consectetur, adipisicing elit. Dolorum blanditiis
+                        molestias error?
                     </div>
                     <div className="owner bg-secondary-400">
-                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellendus quod ab magni eum dolore quae 
+                        Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Repellendus quod ab magni eum dolore quae
                     </div>
                     <div className="owner bg-secondary-400">
-                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellendus quod ab magni eum dolore quae excepturi ipsam praesentium! Iure 
+                        Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Repellendus quod ab magni eum dolore quae
+                        excepturi ipsam praesentium! Iure
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        consectetur, adipisicing elit. Dolorum blanditiis
+                        molestias error?
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        consectetur, adipisicing elit. Dolorum blanditiis
+                        molestias error?
                     </div>
                     <div className="reciever bg-[#1E1D2B]">
-                        consectetur, adipisicing elit. Dolorum blanditiis molestias error?
+                        consectetur, adipisicing elit. Dolorum blanditiis
+                        molestias error?
                     </div>
                 </div>
                 {/* message box input */}
                 <div className="send-chat-configuration bg-secondary-400">
                     <p className="attachments">
-                        <IoIosAttach/>
+                        <IoIosAttach />
                     </p>
-                    <input type="text" placeholder="Type a message here..."/>
+                    <input type="text" placeholder="Type a message here..." />
                     <p className="send-message">
                         <IoSendSharp />
                     </p>
