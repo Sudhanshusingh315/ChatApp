@@ -42,7 +42,8 @@ export const login = async (req, res) => {
                 userId:user?.id,
                 token,
                 email,
-                profileSetup:user?.profileSetup
+                profileSetup:user?.profileSetup,
+                profileImage:user?.profileImage
             })
         }else{
             return res.status(401).json({

@@ -232,8 +232,14 @@ img {
     .text-image {
         justify-self: end;
         width: 100%;
-        margin-block-start: .75em;
+        margin-block-start: 0.75em;
     }
+
+    .owner {
+        align-self: end;
+        position: relative;
+    }
+
     /* todo make these before and after work
     else implement, the way google messages
     rcs has. 
@@ -250,11 +256,7 @@ img {
         border-color: var(--chat-bg-color) var(--chat-bg-color) transparent
             transparent;
     } */
-
-    .owner {
-        align-self: end;
-        position: relative;
-    }
+    /*  todo: the message tail */
     /* .owner::after {
         content: "";
         top: 0;
@@ -266,7 +268,7 @@ img {
         border-width: 6px;
         border-color: var(--chat-bg-color) transparent transparent
             var(--chat-bg-color);
-        
+
     } */
 }
 

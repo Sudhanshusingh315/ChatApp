@@ -5,12 +5,13 @@ import {configFile} from './constants.config.js'
 import authRoutes from './routes/authRoute.js';
 import { app,io,server } from './socket.io.js';
 import contactRoutes from './routes/contactRoute.js';
+import messageRoutes from './routes/messageRoute.js';
 
 app.use(cors());
 app.use(express.json());
 
 // All routes;
-
+// todo: add the express validotor to all my apis
 // test
 app.get('/',(req,res)=>{
   res.status(200).json(
@@ -24,8 +25,14 @@ app.get('/',(req,res)=>{
 // Auth routes
 app.use('/api/auth',authRoutes);
 
-// search contact
+// contact routes 
 app.use('/api/searchContact',contactRoutes);
+
+// message routes
+app.use('/api/messages',messageRoutes);
+
+
+
 
 
 main().catch(err => console.log(err));

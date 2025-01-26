@@ -28,7 +28,6 @@ export const searchContact = async (req, res) => {
 export const getAllContacts = async (req, res) => {
     try {
         const { userId } = req.params;
-        console.log(req.params);
         let contacts=null;
         if (userId) {
             contacts = await User.aggregate(contactPipeline(userId));

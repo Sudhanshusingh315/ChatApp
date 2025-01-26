@@ -8,22 +8,41 @@ const chatSchema = new Schema(
             ref: "user",
             required: true,
         },
-        recieverId: {
+        recipientId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "user",
             required: true,
         },
         messageType: {
             type: String,
+            // todo: add support for pdf,images,voice,sticker
+            enum: ["text", "imageWithText"],
+            default: "text",
         },
-        image: {
+        imageWithText: {
+            type: Array,
+        },
+        message: {
             type: String,
         },
-    },
-    {
-        timestamps: true,
+        // todo: implement this, would be a fun one
+        // todo: handle with enums
+        reaction: {
+            type: String,
+        },
+        createdAt: {
+            type: Number,
+            default: new Date().getTime(),
+        },
+        updatedAt: {
+            type: Number,
+            default: new Date().getTime(),
+        },
     }
+    // ,
+    // {
+    //     timestamps: { currentTime: () => Date.now() },
+    // }
 );
 
-
-export const Chat = mongoose.model('chat',chatSchema);
+export const Chat = mongoose.model("chat", chatSchema);

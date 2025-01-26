@@ -8,24 +8,28 @@ import { IoIosAttach } from "react-icons/io";
 import { IoSendSharp } from "react-icons/io5";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import {
+    clearMessage,
+    getInitMessages,
+} from "../../features/messages/messageSlice";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
+    const { initMessages } = useSelector((state) => state.message);
     const [chatBox, setChatBox] = useState([]);
     const [messageBox, setMessageBox] = useState("");
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState([]);
+    const dispatch = useDispatch();
 
+    // socket init
     useEffect(() => {
         if (socket || !socket?.connected) {
             socket?.connect();
-            socket?.on("getOnlineUsers", (users) => {
-                console.log("online users", users);
-            });
+            socket?.on("getOnlineUsers", (users) => {});
             socket?.on("recieveMessages", (message) => {
-                console.log("new message: ", message);
                 setMessages((prev) => {
                     return [...prev, message];
                 });
@@ -40,6 +44,7 @@ export default function Chat() {
         };
     }, [socket]);
 
+    // todo: put the get contact somewhere else.
     useEffect(() => {
         (async function () {
             const { data } = await axios.get(
@@ -54,22 +59,50 @@ export default function Chat() {
         })();
     }, []);
 
-    const handleSelectChat = (info) => {
-        setSelectedChat(info);
+    useEffect(() => {
+        if (initMessages) {
+            setMessages((prev) => {
+                return [...prev, ...initMessages];
+            });
+        }
+    }, [initMessages]);
 
+    // select the chat
+    const handleSelectChat = async (e, info) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setSelectedChat(info);
+        if (info?._id !== selectedChat?._id || !selectedChat) {
+            dispatch(clearMessage());
+            setMessages([]);
+            const initMessages = {
+                senderId: userInfo?.userId,
+                recipientId: info?._id,
+                token: userInfo?.token,
+            };
+            await dispatch(getInitMessages(initMessages));
+        }
         // get all past message
     };
+
+    // send the message
     const sendMessage = (message) => {
+        if (!message) return;
         const emitInfo = {
             message,
             senderId: userInfo?.userId,
             recipientId: selectedChat?._id,
+            createdAt: new Date().getTime(),
+            updatedAt: new Date().getTime(),
         };
         socket?.emit("sendMessage", emitInfo);
-        // add this message to your message box now
+
         setMessages((prev) => {
             return [...prev, emitInfo];
         });
+
+        // add this message to your message box now
         setMessageBox("");
     };
 
@@ -80,7 +113,7 @@ export default function Chat() {
                     <div className="user-chat--info">
                         <img
                             className="user-profile"
-                            src="https://i.pravatar.cc/300"
+                            src={userInfo?.profileImage}
                             alt="user-profile-image"
                         />
                         <p className="themes">
@@ -122,8 +155,20 @@ export default function Chat() {
                             <div
                                 key={info?.email}
                                 className="chat-inbox "
-                                onClick={() => {
-                                    handleSelectChat(info);
+                                onClick={(e) => {
+                                    if (
+                                        info?._id !== selectedChat?._id ||
+                                        !selectedChat
+                                    ) {
+                                        console.log(
+                                            `info ${info?._id} selected chat ${selectedChat?._id}`
+                                        );
+                                        handleSelectChat(e, info);
+                                    } else {
+                                        console.log(
+                                            "initial messages are already loaded"
+                                        );
+                                    }
                                 }}
                             >
                                 <img
@@ -185,9 +230,9 @@ export default function Chat() {
                 <div className="chat-container">
                     {/* header */}
                     <div className="chat-header-section text-accent bg-primary/10">
-                        <img src="https://i.pravatar.cc/300" alt="" />
+                        <img src={selectedChat?.profileImage} alt="" />
                         <div className="user-info">
-                            <p className="chat-selected-user">Santosh Kumar</p>
+                            <p className="chat-selected-user">{`${selectedChat?.firstName} ${selectedChat?.lastName}`}</p>
                             <span className="last-seen">
                                 last Seen Yesterday at 7:20 PM
                             </span>
@@ -205,6 +250,8 @@ export default function Chat() {
                             ({ recipientId, senderId, message }, index) => {
                                 return (
                                     <div
+                                        // todo: can we do a better index than this?
+                                        key={index}
                                         className={
                                             userInfo?.userId === senderId
                                                 ? "owner bg-secondary-400"
@@ -217,44 +264,12 @@ export default function Chat() {
                             }
                         )}
 
-                       <div className="owner bg-secondary-400">
+                        {/* tod0: keep this for later */}
+                        {/* <div className="owner bg-secondary-400">
                             <img className="message-image"  src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk=" alt="" />
                             <p className="text-image">Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk</p>
-                       </div>
+                       </div> */}
                     </div>
-                    {/* <div className="reciever bg-[#1E1D2B]">
-                            Lorem ipsum dolor sit amet consectetur, adipisicing
-                            elit. Dolorum blanditiis molestias error?
-                        </div>
-                        <div className="reciever bg-[#1E1D2B]">
-                            consectetur, adipisicing elit. Dolorum blanditiis
-                            molestias error?
-                        </div> */}
-                    {/* <div className="reciever bg-[#1E1D2B]">
-                            consectetur, adipisicing elit. Dolorum blanditiis
-                            molestias error?
-                        </div>
-                        <div className="owner bg-secondary-400">
-                            Lorem ipsum dolor, sit amet consectetur adipisicing
-                            elit. Repellendus quod ab magni eum dolore quae
-                        </div>
-                        <div className="owner bg-secondary-400">
-                            Lorem ipsum dolor, sit amet consectetur adipisicing
-                            elit. Repellendus quod ab magni eum dolore quae
-                            excepturi ipsam praesentium! Iure
-                        </div>
-                        <div className="reciever bg-[#1E1D2B]">
-                            consectetur, adipisicing elit. Dolorum blanditiis
-                            molestias error?
-                        </div>
-                        <div className="reciever bg-[#1E1D2B]">
-                            consectetur, adipisicing elit. Dolorum blanditiis
-                            molestias error?
-                        </div>
-                        <div className="reciever bg-[#1E1D2B]">
-                            consectetur, adipisicing elit. Dolorum blanditiis
-                            molestias error? */}
-                    {/* </div> */}
                     {/* message box input */}
                     <div className="send-chat-configuration bg-secondary-400">
                         <p className="attachments">
