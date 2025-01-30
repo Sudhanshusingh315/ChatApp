@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config();
+
 export const configFile = {
     mongodbConnectionString: process.env.DATABASE,
     jwtSecrete: process.env.JWT_KEY,
@@ -9,4 +10,9 @@ export const configFile = {
 export const responseStatus = {
     SUCCESS:"SUCCESS",
     FAIL:"FAIL"
+}
+
+export const chatType = {
+    OneOnOne :"OneOnOne",
+    groupChat :"GroupChat"
 }

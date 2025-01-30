@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { chatType } from "../constants.config.js";
 // search all contacts
 
 export const contactPipeline = (userId) => {
@@ -13,12 +14,35 @@ export const contactPipeline = (userId) => {
                 from: "users",
                 localField: "contacts",
                 foreignField: "_id",
+                pipeline:[
+                    {
+                        $set:{
+                            "chatType":chatType?.OneOnOne
+                        }
+                    }
+                ],
                 as: "contactDetails",
             },
         },
         {
+            $lookup:{
+                from:"groupchats",
+                localField:"groups",
+                foreignField:"_id",
+                pipeline:[
+                    {
+                        $set:{
+                            "chatType":chatType?.groupChat
+                        }
+                    }
+                ],
+                as:"myGroups"
+            }
+        },
+        {
             $project: {
                 contactDetails: 1,
+                myGroups:1,
                 _id: 0,
             },
         },

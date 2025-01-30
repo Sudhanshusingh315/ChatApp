@@ -37,6 +37,12 @@ const userSchema = new Schema({
             ref: "user",
         },
     ],
+    groups:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"groupChat"
+        }
+    ]
 });
 
 export const User = mongoose.model("user", userSchema);

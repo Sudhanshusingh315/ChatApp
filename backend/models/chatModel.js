@@ -11,7 +11,6 @@ const chatSchema = new Schema(
         recipientId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "user",
-            required: true,
         },
         messageType: {
             type: String,
@@ -38,11 +37,20 @@ const chatSchema = new Schema(
             type: Number,
             default: new Date().getTime(),
         },
+        isGroup:{
+            type:Boolean,
+            default:false
+        },
+        groupName:{
+            type:String,
+        },
+        groupRecipientIds:[{type:mongoose.Schema.Types.ObjectId,ref:"user"}]
+        
     }
-    // ,
-    // {
-    //     timestamps: { currentTime: () => Date.now() },
-    // }
+    ,
+    {
+        timestamps: { currentTime: () => Date.now() },
+    }
 );
 
 export const Chat = mongoose.model("chat", chatSchema);

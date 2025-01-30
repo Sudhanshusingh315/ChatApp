@@ -33,32 +33,33 @@ export const login = async (req, res) => {
     // todo: handle the validation of these parameters.
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).populate('groups');
         // todo: check if password is correct with bcrypt
         if (user) {
-            const token = generateToken({email});
+            const token = generateToken({ email });
             return res.status(201).json({
                 status: responseStatus.SUCCESS,
-                userId:user?.id,
+                userId: user?.id,
                 token,
                 email,
-                profileSetup:user?.profileSetup,
-                profileImage:user?.profileImage
-            })
-        }else{
+                profileSetup: user?.profileSetup,
+                profileImage: user?.profileImage,
+                firstName: user?.firstName,
+                lastName: user?.lastName,
+                groups:user?.groups
+            });
+        } else {
             return res.status(401).json({
-                status:responseStatus.FAIL,
-                message:"User does not exists",
-                email
-            })
+                status: responseStatus.FAIL,
+                message: "User does not exists",
+                email,
+            });
         }
     } catch (err) {
         console.log(err);
         return res.status(401).json({
-            status:responseStatus.FAIL,
-            email,
-            error:err
-        })
-
+            status: responseStatus.FAIL,
+            error: err,
+        });
     }
 };

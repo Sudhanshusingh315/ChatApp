@@ -32,6 +32,7 @@ img {
     grid-column-start: 1;
     grid-column-end: 7;
     border-right: 1px solid var(--border-list);
+    position: relative;
 }
 
 .chat-action {
@@ -314,6 +315,61 @@ img {
         font-size: 2rem;
     }
 }
+/* group creation section */
+.group-creation {
+    height: 100%;
+    width: inherit;
+    position: absolute;
+    inset: 0;
+    transform: translateX(-110%);
+    transition: transform 500ms ease-in-out;
+    p {
+        font-size: 2rem;
+        color: #eeee;
+        padding-block-start: 0.25em;
+        padding-inline-start: 0.25em;
+        width: 40px;
+        aspect-ratio: 1/1;
+        justify-self: start;
+        rotate: 45deg;
+    }
+
+    /* todo: change the ui styles after making it work functionally */
+
+    div {
+        color: white;
+        display: grid;
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+    .contact-select {
+        background-color: rebeccapurple;
+    }
+    .select-box{
+        display: flex;
+        flex-wrap: wrap;
+        border: 2px solid red;
+        gap: 1rem; 
+        div{
+            background-color: #3b1e54;
+            border-radius: 100vh; 
+        }
+        input{
+            
+            background-color: #3b1e54;
+            border-radius: 100vh; 
+            padding: .725em .25em;
+        }
+        input::placeholder{
+            padding-left: .25rem;
+        }
+        input[type="text"]{
+            padding-left: 1rem;
+        }
+    }
+}
+
+/* todo: add hover effects, click effects, bubble effcts on all the components IMPORTANT */
 
 @media (min-width: 850px) {
     .sidebar {

@@ -1,6 +1,8 @@
 import { Types } from "mongoose";
 import { Chat } from "../models/chatModel.js";
 import { getAllMessagesOneOnOne } from "../aggregation/aggregation.pipeline.js";
+import { chatType } from "../constants.config.js";
+import { chatTypes } from "../../frontend/src/constants/contants.js";
 
 // get the messages
 // post and save the messages
@@ -83,34 +85,55 @@ export const saveMessages = async (req, res) => {
 
 export const saveMessagesWithSocketIo = async (messageData) => {
     try {
+        const {
+            message,
+            messageType,
+            createdAt,
+            updatedAt,
+            senderId,
+            recipientId,
+            isGroup,
+            groupName,
+            groupRecipientIds,
+            chatType,
+        } = messageData;
 
-        const { message, messageType, createdAt, updatedAt , senderId,recipientId } = messageData;
+        let saveMessage;
 
-        if (!senderId || !recipientId || !message) {
-            throw new Error("Messages can't be saved, something happened");
-        } else {
-            let saveMessage;
+        // todo: switch statement for implementing different messages
+        switch (chatType) {
+            case chatTypes.OneOnOne:
+                saveMessage = await Chat.create({
+                    senderId: Types.ObjectId.createFromHexString(senderId),
+                    recipientId:
+                        Types.ObjectId.createFromHexString(recipientId),
+                    messageType,
+                    message: message,
+                    ...(createdAt && { createdAt }),
+                    ...(updatedAt && { updatedAt }),
+                });
 
-            // todo: switch statement for implementing different messages
+                break;
+            case chatTypes.groupChat:
+                saveMessage = await Chat.create({
+                    ...(senderId && { senderId }),
+                    ...(messageType && { messageType }),
+                    ...(message && { message }),
+                    ...(isGroup && { isGroup }),
+                    ...(groupName && { groupName }),
+                    ...(groupRecipientIds && { groupRecipientIds }),
+                });
 
-            saveMessage = await Chat.create({
-                senderId: Types.ObjectId.createFromHexString(senderId),
-                recipientId: Types.ObjectId.createFromHexString(recipientId),
-                messageType,
-                message: message,
-                ...(createdAt && { createdAt }),
-                ...(updatedAt && { updatedAt }),
-            });
-
-            if (saveMessages) {
-                return true ;
-                } else {
-                    return false;
-            }
+            default:
+                break;
         }
-
+        if (saveMessages) {
+            return true;
+        } else {
+            return false;
+        }
     } catch (err) {
+        console.log(err);
         return false;
     }
-
 };

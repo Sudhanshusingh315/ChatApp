@@ -28,15 +28,24 @@ io.on("connection", (socket) => {
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
     // listening for messages;
-    socket.on("sendMessage",(emittedInfo) => {
+    // one-on-one chat
+    socket.on("sendMessage", (emittedInfo) => {
+        console.log("emittedInfo", emittedInfo);
 
-        const { message, senderId, recipientId, messageType,createdAt,updatedAt } = emittedInfo;
-
-        const id = getSocketId(recipientId)
-        //save the message to the db regardless if of the recipient online or not.
-        // remove async if error
+        const {
+            message,
+            senderId,
+            recipientId,
+            messageType,
+            createdAt,
+            updatedAt,
+            chatType
+        } = emittedInfo;
 
         /*
+            //save the message to the db regardless if of the recipient online or not.
+            // remove async if error
+
         // todo: implement this functionality because this is important.
         1) if the user is online  
             i) they have the chat opened -> emit with the socket and no "un-read messages".
@@ -44,23 +53,35 @@ io.on("connection", (socket) => {
         2) if they are offline we are anyway saving the data, but save it with unread messages.
 
         */
-
         // if ther receiver is online only then emit the message; otherwise save it to the database.
-        if(id){
-            io?.to(id)?.emit("recieveMessages",emittedInfo);
-            
-            // if the user is online means the socket is emitting 
-        }
-        else{
 
-        }
-        saveMessagesWithSocketIo(emittedInfo)
+        const id = getSocketId(recipientId);
+        if (id) {
+            io?.to(id)?.emit("recieveMessages", emittedInfo);
 
+            // if the user is online means the socket is emitting
+        }
+        saveMessagesWithSocketIo(emittedInfo);
     });
 
-    socket.on("disconnect", () => {
-        delete userSocketMap[userId];
-        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    socket.on("joinRoom", (roomId) => {
+        // create the group here
+        console.log("roomId is",roomId);
+        socket.join(roomId);
+        console.log(`socket id ${socket?.id} joined room`);
+        socket.on("sendGroupMessages", (emittedInfo) => {
+
+            console.log("emittedInfo is ", emittedInfo);
+            io?.to(roomId)?.emit("recieveMessages", emittedInfo);
+            const value = saveMessagesWithSocketIo(emittedInfo);
+            console.log("save message",value);
+        });
+        // todo: handle default case here.
+        socket.on("disconnect", () => {
+            delete userSocketMap[userId];
+            io.emit("getOnlineUsers", Object.keys(userSocketMap));
+        });
+        //     console.log(`socket id ${socket?.id} joined the room i.e ${roomId}`);
     });
 });
 

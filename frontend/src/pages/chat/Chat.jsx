@@ -1,10 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
-import { CiSettings } from "react-icons/ci";
 import { CiSearch } from "react-icons/ci";
+import { CiChat1 } from "react-icons/ci";
 import { CiMenuKebab } from "react-icons/ci";
 import { IoIosAttach } from "react-icons/io";
+import { CiCirclePlus } from "react-icons/ci";
 import { IoSendSharp } from "react-icons/io5";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
@@ -14,26 +15,40 @@ import {
     clearMessage,
     getInitMessages,
 } from "../../features/messages/messageSlice";
+import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModal";
+import { createGroup } from "../../api/chat.api";
+import { chatTypes } from "../../constants/contants";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
     const { initMessages } = useSelector((state) => state.message);
     const [chatBox, setChatBox] = useState([]);
+    const [messages, setMessages] = useState([]);
     const [messageBox, setMessageBox] = useState("");
     const [selectedChat, setSelectedChat] = useState(null);
-    const [messages, setMessages] = useState([]);
+    const [groupCreationWindow, setGroupCreationWindow] = useState(false);
+    const [groupCreation, setGroupCreation] = useState([]);
+    const [groupCreationModalControl, setGroupCreationModalControl] =
+        useState(false);
+    const [groupName, setGroupName] = useState("");
     const dispatch = useDispatch();
-
     // socket init
     useEffect(() => {
+        
         if (socket || !socket?.connected) {
             socket?.connect();
-            socket?.on("getOnlineUsers", (users) => {});
             socket?.on("recieveMessages", (message) => {
+                console.log("recieved message",message);
                 setMessages((prev) => {
                     return [...prev, message];
                 });
+                
             });
+        }
+        if (userInfo || socket) {
+            userInfo?.groups.forEach((room) => {
+                socket?.emit("joinRoom", room);
+        });
         }
 
         return () => {
@@ -42,8 +57,8 @@ export default function Chat() {
                 socket.disconnect();
             }
         };
-    }, [socket]);
-
+    }, [socket, userInfo]);
+console.log("messages",messages);
     // todo: put the get contact somewhere else.
     useEffect(() => {
         (async function () {
@@ -53,8 +68,12 @@ export default function Chat() {
                     headers: { Authorization: `Bearer ${userInfo?.token}` },
                 }
             );
+            console.log("data from groups", data);
             setChatBox((prev) => {
-                return [...data?.data[0]?.contactDetails];
+                return [
+                    ...data?.data[0]?.contactDetails,
+                    ...data?.data[0]?.myGroups,
+                ];
             });
         })();
     }, []);
@@ -71,41 +90,118 @@ export default function Chat() {
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
         e.stopPropagation();
-
         setSelectedChat(info);
-        if (info?._id !== selectedChat?._id || !selectedChat) {
-            dispatch(clearMessage());
-            setMessages([]);
-            const initMessages = {
-                senderId: userInfo?.userId,
-                recipientId: info?._id,
-                token: userInfo?.token,
-            };
-            await dispatch(getInitMessages(initMessages));
+        const chatType = info?.chatType;
+
+        switch (chatType) {
+            case chatTypes?.OneOnOne:
+                if (info?._id !== selectedChat?._id || !selectedChat) {
+                    dispatch(clearMessage());
+                    setMessages([]);
+                    const initMessages = {
+                        senderId: userInfo?.userId,
+                        recipientId: info?._id,
+                        token: userInfo?.token,
+                    };
+                    await dispatch(getInitMessages(initMessages));
+                }
+                break;
+            case chatTypes?.groupChat:
+                if (!selectedChat || info?._id !== selectedChat?._id) {
+                    dispatch(clearMessage());
+                    // setMessages([]);
+                    const initMessages = {};
+                }
+                break;
+            default:
+                break;
         }
+
+        // handle with switch case.
+
         // get all past message
     };
 
     // send the message
     const sendMessage = (message) => {
         if (!message) return;
-        const emitInfo = {
-            message,
-            senderId: userInfo?.userId,
-            recipientId: selectedChat?._id,
-            createdAt: new Date().getTime(),
-            updatedAt: new Date().getTime(),
-        };
-        socket?.emit("sendMessage", emitInfo);
 
-        setMessages((prev) => {
-            return [...prev, emitInfo];
-        });
+        // decide on the basics of chat application.
+        const chatType = selectedChat?.chatType;
+        let emitInfo = null;
+        switch (chatType) {
+            case chatTypes.OneOnOne:
+                emitInfo = {
+                    message,
+                    senderId: userInfo?.userId,
+                    recipientId: selectedChat?._id,
+                    createdAt: new Date().getTime(),
+                    updatedAt: new Date().getTime(),
+                    chatType: chatTypes.OneOnOne
+                };
+                socket?.emit("sendMessage", emitInfo);
 
-        // add this message to your message box now
+                setMessages((prev) => {
+                    return [...prev, emitInfo];
+                });
+
+                // add this message to your message box now
+                break;
+            case chatTypes.groupChat:
+                emitInfo = {
+                    message,
+                    senderId : userInfo?.userId,
+                    chatType: chatTypes.groupChat
+                }
+                let specificGroup = userInfo?.groups.filter((group) => {
+                    return selectedChat?._id === group?._id;
+                });
+                const groupParticipants = specificGroup[0]?.participants;
+
+                socket.emit("sendGroupMessages", emitInfo);
+
+                break;
+            default:
+                break;
+        }
         setMessageBox("");
     };
+    const handleGroupCreation = () => {
+        console.log("group");
+        setGroupCreationWindow((prev) => !prev);
+        setGroupCreation([]);
+    };
 
+    const handleGroupParticipants = (info, index) => {
+        console.log("info is", info);
+
+        setGroupCreation((prev) => {
+            if (
+                groupCreation?.find(
+                    (element) => element?.firstName === info?.firstName
+                )
+            ) {
+                console.log("found it");
+                return [...prev];
+            } else {
+                console.log("didn't find it");
+                return [...prev, info];
+            }
+        });
+    };
+
+    const handleGroupModalOpen = () => {};
+
+    const handleFormAGroup = async () => {
+        const result = await createGroup(
+            groupCreation,
+            groupName,
+            userInfo?.userId
+        );
+        setGroupName("");
+        console.log("result ", result);
+    };
+    console.log("chat box", chatBox);
     return (
         <div className="chat-wrapper">
             <div className="sidebar">
@@ -122,8 +218,8 @@ export default function Chat() {
                         <p className="stories">
                             <CiShop />
                         </p>
-                        <p className="settings">
-                            <CiSettings />
+                        <p className="settings" onClick={handleGroupCreation}>
+                            <CiChat1 />
                         </p>
                     </div>
                     <div className="chat-search">
@@ -132,7 +228,7 @@ export default function Chat() {
                         <input
                             type="text"
                             className="bg-secondary-400/85 hover:outline-primary hover:outline-4 hover:outline-double"
-                            placeholder="search contacts"
+                            placeholder="search contacts globally"
                         />
                     </div>
                     <div className="messages-category">
@@ -153,7 +249,7 @@ export default function Chat() {
                     {chatBox?.map((info, index) => {
                         return (
                             <div
-                                key={info?.email}
+                                key={info?._id}
                                 className="chat-inbox "
                                 onClick={(e) => {
                                     if (
@@ -178,7 +274,11 @@ export default function Chat() {
                                 />
                                 {/* todo: replace with firstname and last name */}
                                 <div className="chat-info">
-                                    <p className="name">{`${info?.firstName} ${info?.lastName}`}</p>
+                                    <p className="name">
+                                        {info?.firstName && info?.lastName
+                                            ? `${info?.firstName} ${info?.lastName}`
+                                            : `${info?.groupName}`}
+                                    </p>
                                     <p className="last-message">
                                         {/* todo:last message, either send or recieve here. */}
                                         Happy makar sankaranti kjfalkd
@@ -222,6 +322,67 @@ export default function Chat() {
                         </div>
                     </div> */}
                 </div>
+                {/* group section */}
+                <div
+                    className="group-creation bg-primary-bg"
+                    style={
+                        groupCreationWindow
+                            ? { transform: "translateX(0%)" }
+                            : {}
+                    }
+                >
+                    <p onClick={handleGroupCreation}>
+                        <CiCirclePlus />
+                    </p>
+                    {/* search globaly throught the database */}
+                    <div className="select-box">
+                        {groupCreation.length >= 1 &&
+                            groupCreation?.map((selectedContact, index) => {
+                                // todo: the box you have selected, click on these again to remove them from the contact.
+                                return (
+                                    <div key={index}>
+                                        {selectedContact?.firstName}
+                                    </div>
+                                );
+                            })}
+                        <input placeholder="search for people" type="text" />
+                        <input
+                            placeholder="Group name"
+                            type="text"
+                            onChange={(e) => {
+                                setGroupName(e.target.value);
+                            }}
+                            value={groupName}
+                        />
+                        {/* todo: later this would become a modal, IMPORTANT */}
+                        <button
+                            onClick={() => {
+                                handleFormAGroup();
+                            }}
+                            className="px-4 py-2 bg-pink-800 rounded-full "
+                        >
+                            Create group
+                        </button>
+                    </div>
+                    {/* todo: create the modal for group creation */}
+                    {/* <CreateGroupModal open={groupCreationModalControl} /> */}
+                    {/* search or select through just your contacts */}
+                    <div>
+                        {chatBox?.map((contact, index) => {
+                            return (
+                                <div
+                                    key={index}
+                                    className="contact-select"
+                                    onClick={() => {
+                                        handleGroupParticipants(contact, index);
+                                    }}
+                                >
+                                    {contact?.firstName}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
 
             {/* chat conponent */}
@@ -264,7 +425,7 @@ export default function Chat() {
                             }
                         )}
 
-                        {/* tod0: keep this for later */}
+                        {/* todo: keep this for later */}
                         {/* <div className="owner bg-secondary-400">
                             <img className="message-image"  src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk=" alt="" />
                             <p className="text-image">Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk</p>
