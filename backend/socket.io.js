@@ -39,7 +39,7 @@ io.on("connection", (socket) => {
             messageType,
             createdAt,
             updatedAt,
-            chatType
+            chatType,
         } = emittedInfo;
 
         /*
@@ -66,22 +66,27 @@ io.on("connection", (socket) => {
 
     socket.on("joinRoom", (roomId) => {
         // create the group here
-        console.log("roomId is",roomId);
-        socket.join(roomId);
-        console.log(`socket id ${socket?.id} joined room`);
-        socket.on("sendGroupMessages", (emittedInfo) => {
+        console.log("roomId is", roomId);
 
-            console.log("emittedInfo is ", emittedInfo);
-            io?.to(roomId)?.emit("recieveMessages", emittedInfo);
-            const value = saveMessagesWithSocketIo(emittedInfo);
-            console.log("save message",value);
-        });
+        socket.join(roomId);
+
+        console.log(`socket id ${socket?.id} joined room`);
+
         // todo: handle default case here.
-        socket.on("disconnect", () => {
-            delete userSocketMap[userId];
-            io.emit("getOnlineUsers", Object.keys(userSocketMap));
-        });
+
         //     console.log(`socket id ${socket?.id} joined the room i.e ${roomId}`);
+    });
+    socket.on("sendGroupMessages", (emittedInfo) => {
+        const {roomId} = emittedInfo;
+        console.log("emittedInfo is ", emittedInfo);
+        io.to(roomId).emit("recieveMessages", emittedInfo);
+        const value = saveMessagesWithSocketIo(emittedInfo);
+        console.log("save message", value);
+    });
+    socket.on("disconnect", () => {
+        delete userSocketMap[userId];
+        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+        io.emit("offline",`Sokcet ${socket?.id} disconnected`);
     });
 });
 

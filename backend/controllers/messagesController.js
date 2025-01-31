@@ -94,8 +94,9 @@ export const saveMessagesWithSocketIo = async (messageData) => {
             recipientId,
             isGroup,
             groupName,
-            groupRecipientIds,
+            groupParticipantIds,
             chatType,
+            roomId
         } = messageData;
 
         let saveMessage;
@@ -121,7 +122,8 @@ export const saveMessagesWithSocketIo = async (messageData) => {
                     ...(message && { message }),
                     ...(isGroup && { isGroup }),
                     ...(groupName && { groupName }),
-                    ...(groupRecipientIds && { groupRecipientIds }),
+                    ...(groupParticipantIds && { groupRecipientIds:groupParticipantIds }),
+                    ...(roomId && {roomId})
                 });
 
             default:

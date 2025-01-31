@@ -32,33 +32,33 @@ export default function Chat() {
         useState(false);
     const [groupName, setGroupName] = useState("");
     const dispatch = useDispatch();
+
     // socket init
+    console.log("messages",messages);
     useEffect(() => {
-        
-        if (socket || !socket?.connected) {
-            socket?.connect();
-            socket?.on("recieveMessages", (message) => {
-                console.log("recieved message",message);
-                setMessages((prev) => {
-                    return [...prev, message];
-                });
-                
-            });
-        }
-        if (userInfo || socket) {
-            userInfo?.groups.forEach((room) => {
-                socket?.emit("joinRoom", room);
-        });
+        if (!socket) return;
+        if (socket || !socket.connected()) {
+            socket.connect();
+            socket.on("offline",(offlineUsers)=>{
+                console.log(offlineUsers);   
+            })
+            socket.on("recieveMessages",(emittedInfo)=>{
+                console.log("this is what is recieved",emittedInfo)
+                setMessages((prev)=>{
+                    return [...prev,emittedInfo];
+                })
+            })
+
         }
 
         return () => {
             if (socket) {
-                socket.off("getOnlineUsers");
-                socket.disconnect();
+                
+                socket?.disconnect();
             }
         };
-    }, [socket, userInfo]);
-console.log("messages",messages);
+    }, [socket]);
+
     // todo: put the get contact somewhere else.
     useEffect(() => {
         (async function () {
@@ -93,12 +93,13 @@ console.log("messages",messages);
         setSelectedChat(info);
         const chatType = info?.chatType;
 
+        let initMessages = {};
         switch (chatType) {
             case chatTypes?.OneOnOne:
                 if (info?._id !== selectedChat?._id || !selectedChat) {
                     dispatch(clearMessage());
                     setMessages([]);
-                    const initMessages = {
+                    initMessages = {
                         senderId: userInfo?.userId,
                         recipientId: info?._id,
                         token: userInfo?.token,
@@ -109,8 +110,10 @@ console.log("messages",messages);
             case chatTypes?.groupChat:
                 if (!selectedChat || info?._id !== selectedChat?._id) {
                     dispatch(clearMessage());
-                    // setMessages([]);
-                    const initMessages = {};
+                    setMessages([]);
+                    initMessages = {
+                        
+                    };
                 }
                 break;
             default:
@@ -137,7 +140,7 @@ console.log("messages",messages);
                     recipientId: selectedChat?._id,
                     createdAt: new Date().getTime(),
                     updatedAt: new Date().getTime(),
-                    chatType: chatTypes.OneOnOne
+                    chatType: chatTypes.OneOnOne,
                 };
                 socket?.emit("sendMessage", emitInfo);
 
@@ -149,16 +152,19 @@ console.log("messages",messages);
                 break;
             case chatTypes.groupChat:
                 emitInfo = {
+                    roomId:selectedChat?._id,
                     message,
-                    senderId : userInfo?.userId,
-                    chatType: chatTypes.groupChat
+                    senderId: userInfo?.userId,
+                    chatType: chatTypes.groupChat,
+                    isGroup: true,
+                    groupName: selectedChat?.groupName,
+                    groupParticipantIds: selectedChat?.participants,
+                };
+                if (socket) {
+                    socket.emit("sendGroupMessages", emitInfo);
+                } else {
+                    console.log("don't have socket");
                 }
-                let specificGroup = userInfo?.groups.filter((group) => {
-                    return selectedChat?._id === group?._id;
-                });
-                const groupParticipants = specificGroup[0]?.participants;
-
-                socket.emit("sendGroupMessages", emitInfo);
 
                 break;
             default:
@@ -171,7 +177,6 @@ console.log("messages",messages);
         setGroupCreationWindow((prev) => !prev);
         setGroupCreation([]);
     };
-
     const handleGroupParticipants = (info, index) => {
         console.log("info is", info);
 
@@ -201,7 +206,7 @@ console.log("messages",messages);
         setGroupName("");
         console.log("result ", result);
     };
-    console.log("chat box", chatBox);
+
     return (
         <div className="chat-wrapper">
             <div className="sidebar">

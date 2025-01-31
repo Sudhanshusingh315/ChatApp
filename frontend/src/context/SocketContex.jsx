@@ -12,12 +12,30 @@ export const SocketProvider = ({ children }) => {
             setSocket((prev) => {
                 return io("http://localhost:5000", {
                     autoConnect: false,
-                    query: userInfo
+                    query: userInfo,
                 });
             });
         }
     }, [userInfo]);
 
+    useEffect(() => {
+        if (userInfo && socket) {
+            console.log("userInfo", userInfo);
+            const roomsId = userInfo?.groups?.map((elment, index) => {
+                return elment?._id;
+            });
+            
+            roomsId.forEach((room) => {
+                socket.emit("joinRoom",room);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off("joinRoom");
+            }
+        };
+    }, [userInfo, socket]);
     return (
         <SocketContext.Provider value={{ socket }}>
             {children}

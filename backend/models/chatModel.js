@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 const { Schema } = mongoose;
 
 const chatSchema = new Schema(
@@ -44,7 +44,10 @@ const chatSchema = new Schema(
         groupName:{
             type:String,
         },
-        groupRecipientIds:[{type:mongoose.Schema.Types.ObjectId,ref:"user"}]
+        groupRecipientIds:[{type:mongoose.Schema.Types.ObjectId,ref:"user"}],
+        roomId:{
+            type:mongoose.Schema.Types.ObjectId, ref:"groupChat"
+        }
         
     }
     ,
