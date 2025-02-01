@@ -12,7 +12,7 @@ export const responseStatus = {
     FAIL:"FAIL"
 }
 
-export const chatType = {
+export const chatTypes = {
     OneOnOne :"OneOnOne",
     groupChat :"GroupChat"
 }

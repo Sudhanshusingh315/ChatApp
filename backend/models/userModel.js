@@ -42,7 +42,10 @@ const userSchema = new Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref:"groupChat"
         }
-    ]
+    ],
+    lastSeen:{
+        type:Number
+    }
 });
 
 export const User = mongoose.model("user", userSchema);

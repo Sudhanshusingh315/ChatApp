@@ -1,0 +1,6 @@
+.modal-container {
+    background-color: red;
+    color: white;
+    position: fixed;
+    /* inset: 0; */
+}

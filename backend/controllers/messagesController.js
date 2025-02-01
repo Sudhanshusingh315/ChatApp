@@ -1,8 +1,12 @@
 import { Types } from "mongoose";
 import { Chat } from "../models/chatModel.js";
-import { getAllMessagesOneOnOne } from "../aggregation/aggregation.pipeline.js";
-import { chatType } from "../constants.config.js";
-import { chatTypes } from "../../frontend/src/constants/contants.js";
+import {
+    getAllMessagesGroup,
+    getAllMessagesOneOnOne,
+} from "../aggregation/aggregation.pipeline.js";
+import { chatTypes } from "../constants.config.js";
+import { User } from "../models/userModel.js";
+import mongoose from "mongoose";
 
 // get the messages
 // post and save the messages
@@ -96,7 +100,7 @@ export const saveMessagesWithSocketIo = async (messageData) => {
             groupName,
             groupParticipantIds,
             chatType,
-            roomId
+            roomId,
         } = messageData;
 
         let saveMessage;
@@ -122,8 +126,10 @@ export const saveMessagesWithSocketIo = async (messageData) => {
                     ...(message && { message }),
                     ...(isGroup && { isGroup }),
                     ...(groupName && { groupName }),
-                    ...(groupParticipantIds && { groupRecipientIds:groupParticipantIds }),
-                    ...(roomId && {roomId})
+                    ...(groupParticipantIds && {
+                        groupRecipientIds: groupParticipantIds,
+                    }),
+                    ...(roomId && { roomId }),
                 });
 
             default:
@@ -137,5 +143,56 @@ export const saveMessagesWithSocketIo = async (messageData) => {
     } catch (err) {
         console.log(err);
         return false;
+    }
+};
+
+export const getAllGroupMessages = async (req, res) => {
+    try {
+        console.log("group messages api");
+        const { roomId } = req.params;
+
+        if (!roomId) {
+            throw new Error("No room id was found");
+        }
+        console.log("group room id is ", roomId);
+        const getMessages = await Chat.aggregate(getAllMessagesGroup(roomId));
+
+        if (getMessages) {
+            return res.status(200).json({
+                success: true,
+                data: getMessages,
+            });
+        }
+    } catch (err) {
+        console.log("err", { err });
+        return res.status(404).json({
+            success: false,
+            error: err.message,
+            message: "No messages were found",
+        });
+    }
+};
+
+export const lastActive = async ({ userId, lastActive }) => {
+    try{
+
+    if (userId) {
+        console.log("userId of the disconnected is",userId);
+        const id = new mongoose.Types.ObjectId(userId);
+        console.log("new Id is",id);
+        console.log(`blob ${id} lastactive ${lastActive}`);
+        const user = await User.updateOne(
+            {
+                _id: id,
+            },
+            {
+                lastSeen:lastActive,
+            }
+        );
+
+        console.log(user);
+    }
+    }catch(err){
+        console.log("err",err);
     }
 };

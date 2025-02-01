@@ -14,10 +14,12 @@ import axios from "axios";
 import {
     clearMessage,
     getInitMessages,
+    getInitMessagesGroup,
 } from "../../features/messages/messageSlice";
 import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModal";
 import { createGroup } from "../../api/chat.api";
-import { chatTypes } from "../../constants/contants";
+import { chatTypes, messageTypes } from "../../constants/contants";
+import ImageWithText from "../../components/Modals/ImageWithText/ImageWithText";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
@@ -30,34 +32,45 @@ export default function Chat() {
     const [groupCreation, setGroupCreation] = useState([]);
     const [groupCreationModalControl, setGroupCreationModalControl] =
         useState(false);
+    // todo multiple files later
+    const [fileImages, setFileImage] = useState("");
     const [groupName, setGroupName] = useState("");
+    const [openPopUp, setOpenPopUp] = useState(false);
+    const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
+    const [onlineUsers,setOnlineUsers] = useState([]);
     const dispatch = useDispatch();
-
+    const imageRef = useRef(null);
     // socket init
-    console.log("messages",messages);
+    console.log("messages", messages);
     useEffect(() => {
         if (!socket) return;
         if (socket || !socket.connected()) {
             socket.connect();
-            socket.on("offline",(offlineUsers)=>{
-                console.log(offlineUsers);   
-            })
-            socket.on("recieveMessages",(emittedInfo)=>{
-                console.log("this is what is recieved",emittedInfo)
-                setMessages((prev)=>{
-                    return [...prev,emittedInfo];
-                })
-            })
+            socket.on("offline", (offlineUsers) => {
+                console.log("offlineusres", offlineUsers);
+                setOnlineUsers((prev) => prev.filter((id) => offlineUsers.includes(id)));
+            });
+            socket.on("recieveMessages", (emittedInfo) => {
+                setMessages((prev) => {
+                    return [...prev, emittedInfo];
+                });
+            });
 
+            socket.on("getOnlineUsers",(onlineUsers)=>{
+                console.log("online users are",onlineUsers);
+                setOnlineUsers([...new Set(onlineUsers)]); 
+            });
         }
-
         return () => {
             if (socket) {
-                
                 socket?.disconnect();
+                socket.off("offline");
+                socket.off("recieveMessages");
+                socket.off("getOnlineUsers");
             }
         };
     }, [socket]);
+    console.log("onlineUsers",onlineUsers);
 
     // todo: put the get contact somewhere else.
     useEffect(() => {
@@ -85,7 +98,7 @@ export default function Chat() {
             });
         }
     }, [initMessages]);
-
+    console.log("initMessages", initMessages);
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
@@ -112,8 +125,10 @@ export default function Chat() {
                     dispatch(clearMessage());
                     setMessages([]);
                     initMessages = {
-                        
+                        roomId: info?._id,
+                        token: userInfo?.token,
                     };
+                    await dispatch(getInitMessagesGroup(initMessages));
                 }
                 break;
             default:
@@ -152,7 +167,7 @@ export default function Chat() {
                 break;
             case chatTypes.groupChat:
                 emitInfo = {
-                    roomId:selectedChat?._id,
+                    roomId: selectedChat?._id,
                     message,
                     senderId: userInfo?.userId,
                     chatType: chatTypes.groupChat,
@@ -195,7 +210,6 @@ export default function Chat() {
         });
     };
 
-    const handleGroupModalOpen = () => {};
 
     const handleFormAGroup = async () => {
         const result = await createGroup(
@@ -205,6 +219,81 @@ export default function Chat() {
         );
         setGroupName("");
         console.log("result ", result);
+    };
+
+    const handleCloseImageWithTextModal = () =>{
+    }
+
+    const handleOpenImageWithTextModal = () =>{
+        setOpenImageWithTextModal(true);
+    }
+    const handleFileChange = (e) => {
+        console.log(e.target.files);
+        console.log(typeof e.target.files);
+        setOpenPopUp(false);
+
+    };
+    const handleClick = () => {
+        if (imageRef?.current) {
+            imageRef.current.click();
+        }
+    };
+
+    const renderMessage = (messageType) => {
+        switch (messageType) {
+            case messageTypes.TEXT:
+                break;
+
+            case messageTypes.IMAGE:
+                break;
+
+            case messageTypes.PDF:
+                break;
+            case messageTypes.IMAGEWITHTEXT:
+                break;
+
+            case messageTypes.PDFWITHTEXT:
+                break;
+
+            default:
+                break;
+        }
+    };
+
+    const isOnline = (id) =>{
+        return onlineUsers?.includes(id);
+    }
+    console.log("selected chat",selectedChat);
+
+    const getLastSeenMessage = (lastSeenTimestamp) => {
+        console.log(" get last see got called")
+        const lastSeen = new Date(lastSeenTimestamp);
+        const now = new Date();
+        const diffMs = now - lastSeen;
+        const diffMinutes = diffMs / (1000 * 60);
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    
+        // Format time in AM/PM
+        const formatTime = (date) => {
+            return date.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true
+            });
+        };
+    
+        if (diffMinutes < 5) {
+            return "Last seen recently";
+        } else if (diffHours < 1) {
+            return `Last seen at ${formatTime(lastSeen)}`;
+        } else if (diffHours < 24) {
+            return `Last seen yesterday at ${formatTime(lastSeen)}`;
+        } else if (diffHours < 48) {
+            return `Last seen yesterday at ${formatTime(lastSeen)}`;
+        } else {
+            return `Last seen on ${lastSeen.toDateString()}`; // Example: "Last seen on Fri Feb 02 2025"
+        }
     };
 
     return (
@@ -279,7 +368,7 @@ export default function Chat() {
                                 />
                                 {/* todo: replace with firstname and last name */}
                                 <div className="chat-info">
-                                    <p className="name">
+                                    <p className="name" status={info?.groupName ? "" : isOnline(info?._id) ? "online":"offline"}>
                                         {info?.firstName && info?.lastName
                                             ? `${info?.firstName} ${info?.lastName}`
                                             : `${info?.groupName}`}
@@ -398,9 +487,16 @@ export default function Chat() {
                     <div className="chat-header-section text-accent bg-primary/10">
                         <img src={selectedChat?.profileImage} alt="" />
                         <div className="user-info">
-                            <p className="chat-selected-user">{`${selectedChat?.firstName} ${selectedChat?.lastName}`}</p>
-                            <span className="last-seen">
-                                last Seen Yesterday at 7:20 PM
+                            <p className="chat-selected-user">
+                                {
+                                    selectedChat?.participants ?  `${selectedChat?.groupName}` :  `${selectedChat?.firstName} ${selectedChat?.lastName}` 
+                                }
+                                </p>
+                            <span className="last-seen" >
+                                {
+                                  selectedChat?.participants ?  "" : isOnline(selectedChat?._id) ? "Online" : getLastSeenMessage(selectedChat?.lastSeen) 
+                                }
+                                
                             </span>
                         </div>
                         <p className="search-icon">
@@ -424,6 +520,7 @@ export default function Chat() {
                                                 : "reciever bg-[#1E1D2B]"
                                         }
                                     >
+                                        {/* call the renderMessage function here */}
                                         {message}
                                     </div>
                                 );
@@ -432,15 +529,54 @@ export default function Chat() {
 
                         {/* todo: keep this for later */}
                         {/* <div className="owner bg-secondary-400">
-                            <img className="message-image"  src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk=" alt="" />
-                            <p className="text-image">Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk</p>
-                       </div> */}
+                            <img
+                                className="message-image"
+                                src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk="
+                                alt=""
+                            />
+                            <p className="text-image">
+                                Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk
+                            </p>
+                        </div> */}
                     </div>
+
                     {/* message box input */}
                     <div className="send-chat-configuration bg-secondary-400">
-                        <p className="attachments">
+                        <button
+                            className="attachments"
+                            onClick={() => {
+                                setOpenPopUp((prev) => !prev);
+                            }}
+                        >
                             <IoIosAttach />
-                        </p>
+                        </button>
+                        {openPopUp && (
+                            <div
+                                className="attachment-popup"
+                                id="attachment-popup"
+                            >
+                                <p
+                                    className="li-media"
+                                    mediatype="photo"
+                                    onClick={handleClick}
+                                >
+                                    Photos and Videos
+                                </p>
+                                <input
+                                    ref={imageRef}
+                                    type="file"
+                                    multiple
+                                    className="photo-video"
+                                    onChange={handleFileChange}
+                                />
+                                <p className="li-pdf" mediatype="document">
+                                    Documents
+                                </p>
+                                <p className="li-contact" mediatype="contact">
+                                    Contact
+                                </p>
+                            </div>
+                        )}
                         <input
                             value={messageBox}
                             onChange={(e) => {
@@ -458,6 +594,10 @@ export default function Chat() {
                             <IoSendSharp />
                         </p>
                     </div>
+
+
+                    {/* modal for sending images with text */}
+                    <ImageWithText open={open} images={fileImages}/>
                 </div>
             ) : (
                 <div className="text-accent">

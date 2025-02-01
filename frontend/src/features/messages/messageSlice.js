@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getInitMessagesThunk } from "./messageslice.api";
+import { getInitMessagesGroupThunk, getInitMessagesThunk } from "./messageslice.api";
 
 export const getInitMessages = createAsyncThunk(
     "messages/getInitMessages",
@@ -9,7 +9,21 @@ export const getInitMessages = createAsyncThunk(
             console.log("respnse data", response?.data);
             return response?.data;
         } catch (err) {
-            console.log("login failed", err);
+            console.log("unable to get one-on-one chat", err);
+        }
+    }
+);
+
+export const getInitMessagesGroup = createAsyncThunk(
+    "messages/getInitMessagesGroup",
+    async (data, { rejectWithValue }) => {
+        try {
+            console.log("init Mesasages data",data);
+            const response = await getInitMessagesGroupThunk(data);
+            console.log("respnse data", response?.data);
+            return response?.data;
+        } catch (err) {
+            console.log("unbale to get group messages", err);
         }
     }
 );
@@ -34,7 +48,13 @@ const messageSlice = createSlice({
         builder.addCase(getInitMessages.fulfilled, (state, action) => {
             state.initMessages.push(...action.payload.data);
             console.log("action payloa", action.payload);
-        });
+        })
+        
+        // init messages from group.
+        .addCase(getInitMessagesGroup.fulfilled,(state,action)=>{
+            state.initMessages.push(...action.payload.data);
+            console.log("action payloat",action.payload);
+        })
     },
 });
 

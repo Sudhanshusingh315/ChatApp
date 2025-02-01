@@ -1,5 +1,5 @@
-import { Types } from "mongoose";
-import { chatType } from "../constants.config.js";
+import mongoose, { Types } from "mongoose";
+import { chatTypes } from "../constants.config.js";
 // search all contacts
 
 export const contactPipeline = (userId) => {
@@ -17,7 +17,7 @@ export const contactPipeline = (userId) => {
                 pipeline:[
                     {
                         $set:{
-                            "chatType":chatType?.OneOnOne
+                            "chatType":chatTypes?.OneOnOne
                         }
                     }
                 ],
@@ -32,7 +32,7 @@ export const contactPipeline = (userId) => {
                 pipeline:[
                     {
                         $set:{
-                            "chatType":chatType?.groupChat
+                            "chatType":chatTypes?.groupChat
                         }
                     }
                 ],
@@ -54,12 +54,24 @@ export const getAllMessagesOneOnOne = (ownerId, recieverId) => {
     // todo: add pagination on this
     let senderId = Types.ObjectId.createFromHexString(ownerId);
     let recipientId = Types.ObjectId.createFromHexString(recieverId);
-
     return [
         {
             $match: {
                 senderId: { $in: [senderId, recipientId] },
                 recipientId: { $in: [senderId, recipientId] },
+            },
+        },
+    ];
+};
+
+export const getAllMessagesGroup = (roomId) => {
+    // pending
+    // todo: add pagination on this
+    let roomIdObjectId = new mongoose.Types.ObjectId(roomId); 
+    return [
+        {
+            $match: {
+               "roomId": roomIdObjectId 
             },
         },
     ];

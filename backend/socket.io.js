@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import express from "express";
 import http from "http";
-import { saveMessagesWithSocketIo } from "./controllers/messagesController.js";
+import { lastActive, saveMessagesWithSocketIo } from "./controllers/messagesController.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -64,6 +64,8 @@ io.on("connection", (socket) => {
         saveMessagesWithSocketIo(emittedInfo);
     });
 
+    // online users
+
     socket.on("joinRoom", (roomId) => {
         // create the group here
         console.log("roomId is", roomId);
@@ -83,10 +85,17 @@ io.on("connection", (socket) => {
         const value = saveMessagesWithSocketIo(emittedInfo);
         console.log("save message", value);
     });
-    socket.on("disconnect", () => {
+    socket.on("disconnect",  async()=> {
+        // update last seen
         delete userSocketMap[userId];
-        io.emit("getOnlineUsers", Object.keys(userSocketMap));
-        io.emit("offline",`Sokcet ${socket?.id} disconnected`);
+        const lastActiveObj = {
+            userId,
+            lastActive: new Date().getTime()
+        }
+        await lastActive(lastActiveObj);        
+        
+        
+        io.emit("offline",Object.keys(userSocketMap));
     });
 });
 
