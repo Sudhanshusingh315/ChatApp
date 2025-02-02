@@ -11,7 +11,7 @@ import { IoSendSharp } from "react-icons/io5";
 import { SocketContext } from "../../context/SocketContex";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import {
+import reducer, {
     clearMessage,
     getInitMessages,
     getInitMessagesGroup,
@@ -19,6 +19,8 @@ import {
 import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModal";
 import { createGroup } from "../../api/chat.api";
 import { chatTypes, messageTypes } from "../../constants/contants";
+import { storage } from "../../utils/firebase/firebase";
+import { ref, uploadBytesResumable } from "firebase/storage";
 import ImageWithText from "../../components/Modals/ImageWithText/ImageWithText";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
@@ -37,7 +39,7 @@ export default function Chat() {
     const [groupName, setGroupName] = useState("");
     const [openPopUp, setOpenPopUp] = useState(false);
     const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
-    const [onlineUsers,setOnlineUsers] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     // socket init
@@ -48,7 +50,9 @@ export default function Chat() {
             socket.connect();
             socket.on("offline", (offlineUsers) => {
                 console.log("offlineusres", offlineUsers);
-                setOnlineUsers((prev) => prev.filter((id) => offlineUsers.includes(id)));
+                setOnlineUsers((prev) =>
+                    prev.filter((id) => offlineUsers.includes(id))
+                );
             });
             socket.on("recieveMessages", (emittedInfo) => {
                 setMessages((prev) => {
@@ -56,9 +60,9 @@ export default function Chat() {
                 });
             });
 
-            socket.on("getOnlineUsers",(onlineUsers)=>{
-                console.log("online users are",onlineUsers);
-                setOnlineUsers([...new Set(onlineUsers)]); 
+            socket.on("getOnlineUsers", (onlineUsers) => {
+                console.log("online users are", onlineUsers);
+                setOnlineUsers([...new Set(onlineUsers)]);
             });
         }
         return () => {
@@ -70,7 +74,6 @@ export default function Chat() {
             }
         };
     }, [socket]);
-    console.log("onlineUsers",onlineUsers);
 
     // todo: put the get contact somewhere else.
     useEffect(() => {
@@ -102,7 +105,7 @@ export default function Chat() {
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
-        e.stopPropagation();
+        // e.stopPropagation();
         setSelectedChat(info);
         const chatType = info?.chatType;
 
@@ -210,7 +213,6 @@ export default function Chat() {
         });
     };
 
-
     const handleFormAGroup = async () => {
         const result = await createGroup(
             groupCreation,
@@ -221,24 +223,43 @@ export default function Chat() {
         console.log("result ", result);
     };
 
-    const handleCloseImageWithTextModal = () =>{
-    }
-
-    const handleOpenImageWithTextModal = () =>{
-        setOpenImageWithTextModal(true);
-    }
-    const handleFileChange = (e) => {
-        console.log(e.target.files);
-        console.log(typeof e.target.files);
-        setOpenPopUp(false);
-
+    const handleCloseImageWithTextModal = () => {
+        setOpenImageWithTextModal(false);
+        setFileImage("");
     };
-    const handleClick = () => {
+
+    const handleOpenImageWithTextModal = () => {
+        setOpenImageWithTextModal(true);
+    };
+    const handleClick = (e) => {
+        console.log("this is handleClick ",e); 
+        e.preventDefault();
+        e.stopPropagation();
+        // e.stopPropagation();
         if (imageRef?.current) {
+            console.log("clicked now and i have ref");
             imageRef.current.click();
         }
     };
+    const handleFileChange = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log("hiiiiiiiiiiii");
+        // e.preventDefault();
+        // console.log("here is the file change",e.target.files)
+        // // setFileImage(e.target.files[0]);
+        // // if(!e.target?.files) return
 
+        // // setOpenPopUp(false);
+        // // const storageRef = ref(
+        // //     storage,
+        // //     `images/${fileImages}+ ${new Date().getTime()}`
+        // // );
+        // // console.log("storage ref is ",storageRef);
+        // // uploadFileToFireBase(storageRef, fileImages);
+        // handleOpenImageWithTextModal();
+    };
+console.log("fileImage",fileImages);
     const renderMessage = (messageType) => {
         switch (messageType) {
             case messageTypes.TEXT:
@@ -260,29 +281,73 @@ export default function Chat() {
         }
     };
 
-    const isOnline = (id) =>{
+    const isOnline = (id) => {
         return onlineUsers?.includes(id);
-    }
-    console.log("selected chat",selectedChat);
+    };
+
+    // const uploadFileToFireBase = (storageRef, file) => {
+    //     console.log("uploading file to fireBase");
+    //     const uploadTask = uploadBytesResumable(storageRef, file);
+    //     uploadTask.on(
+    //         "state_changed",
+    //         (snapshot) => {
+    //             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+    //             const progress =
+    //                 (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+    //             console.log("Upload is " + progress + "% done");
+    //             switch (snapshot.state) {
+    //                 case "paused":
+    //                     console.log("Upload is paused");
+    //                     break;
+    //                 case "running":
+    //                     console.log("Upload is running");
+    //                     break;
+    //             }
+    //         },
+    //         // (error) => {
+    //         //     // A full list of error codes is available at
+    //         //     // https://firebase.google.com/docs/storage/web/handle-errors
+    //         //     switch (error.code) {
+    //         //         case "storage/unauthorized":
+    //         //             // User doesn't have permission to access the object
+    //         //             break;
+    //         //         case "storage/canceled":
+    //         //             // User canceled the upload
+    //         //             break;
+
+    //         //         // ...
+
+    //         //         case "storage/unknown":
+    //         //             // Unknown error occurred, inspect error.serverResponse
+    //         //             break;
+    //         //     }
+    //         // },
+    //         () => {
+    //             // Upload completed successfully, now we can get the download URL
+    //             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+    //                 console.log("File available at", downloadURL);
+    //             });
+    //         }
+    //     );
+    // };
 
     const getLastSeenMessage = (lastSeenTimestamp) => {
-        console.log(" get last see got called")
         const lastSeen = new Date(lastSeenTimestamp);
         const now = new Date();
         const diffMs = now - lastSeen;
         const diffMinutes = diffMs / (1000 * 60);
         const diffHours = diffMs / (1000 * 60 * 60);
         const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    
+
         // Format time in AM/PM
         const formatTime = (date) => {
             return date.toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "numeric",
-                hour12: true
+                hour12: true,
             });
         };
-    
+
         if (diffMinutes < 5) {
             return "Last seen recently";
         } else if (diffHours < 1) {
@@ -368,7 +433,16 @@ export default function Chat() {
                                 />
                                 {/* todo: replace with firstname and last name */}
                                 <div className="chat-info">
-                                    <p className="name" status={info?.groupName ? "" : isOnline(info?._id) ? "online":"offline"}>
+                                    <p
+                                        className="name"
+                                        status={
+                                            info?.groupName
+                                                ? ""
+                                                : isOnline(info?._id)
+                                                ? "online"
+                                                : "offline"
+                                        }
+                                    >
                                         {info?.firstName && info?.lastName
                                             ? `${info?.firstName} ${info?.lastName}`
                                             : `${info?.groupName}`}
@@ -482,21 +556,31 @@ export default function Chat() {
             {/* chat conponent */}
             {/* todo: break this into two components */}
             {selectedChat ? (
-                <div className="chat-container">
+                <div
+                    className="chat-container"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        console.log("i'm being clicked")
+                        setOpenPopUp(false);
+                    }}
+                >
                     {/* header */}
                     <div className="chat-header-section text-accent bg-primary/10">
                         <img src={selectedChat?.profileImage} alt="" />
                         <div className="user-info">
                             <p className="chat-selected-user">
-                                {
-                                    selectedChat?.participants ?  `${selectedChat?.groupName}` :  `${selectedChat?.firstName} ${selectedChat?.lastName}` 
-                                }
-                                </p>
-                            <span className="last-seen" >
-                                {
-                                  selectedChat?.participants ?  "" : isOnline(selectedChat?._id) ? "Online" : getLastSeenMessage(selectedChat?.lastSeen) 
-                                }
-                                
+                                {selectedChat?.participants
+                                    ? `${selectedChat?.groupName}`
+                                    : `${selectedChat?.firstName} ${selectedChat?.lastName}`}
+                            </p>
+                            <span className="last-seen">
+                                {selectedChat?.participants
+                                    ? ""
+                                    : isOnline(selectedChat?._id)
+                                    ? "Online"
+                                    : getLastSeenMessage(
+                                          selectedChat?.lastSeen
+                                      )}
                             </span>
                         </div>
                         <p className="search-icon">
@@ -544,7 +628,9 @@ export default function Chat() {
                     <div className="send-chat-configuration bg-secondary-400">
                         <button
                             className="attachments"
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setOpenPopUp((prev) => !prev);
                             }}
                         >
@@ -558,17 +644,21 @@ export default function Chat() {
                                 <p
                                     className="li-media"
                                     mediatype="photo"
-                                    onClick={handleClick}
+                                    onClick={(e)=>{
+                                        console.log("onclick was clicked")
+                                        handleClick(e)}}
                                 >
                                     Photos and Videos
                                 </p>
                                 <input
                                     ref={imageRef}
                                     type="file"
+                                    // className="photo-video"
                                     multiple
-                                    className="photo-video"
+                                    accept="image/*"
                                     onChange={handleFileChange}
                                 />
+                                
                                 <p className="li-pdf" mediatype="document">
                                     Documents
                                 </p>
@@ -595,9 +685,13 @@ export default function Chat() {
                         </p>
                     </div>
 
-
                     {/* modal for sending images with text */}
-                    <ImageWithText open={open} images={fileImages}/>
+
+                    <ImageWithText
+                        open={openImageWithTextModal}
+                        images={fileImages}
+                        onClose={handleCloseImageWithTextModal}
+                    />
                 </div>
             ) : (
                 <div className="text-accent">

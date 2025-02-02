@@ -1,6 +1,81 @@
 .modal-container {
-    background-color: red;
+    width: 100%;
+    max-width: 1144px;
+    margin:auto;
+    background-color: #1e1d2b;
     color: white;
     position: fixed;
-    /* inset: 0; */
+    z-index: 1;
+    inset: 0;
+}
+
+.modal-container{
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    place-content: center;
+    padding-inline: 3em; 
+    .modal{
+        width: 90% ;
+        margin-inline:auto;
+        padding-block: 1rem;
+        display: grid;
+        gap:1rem;
+
+
+        .tool-bar{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .go-back{
+            color: hotpink;
+        }
+        .go-back:is(:hover,:focus-visible){
+            color:white
+        }
+
+        p{
+            font-size: 1.2rem;
+
+        }
+        .inputbox{
+            display: flex;
+            justify-content: center ;
+            background-color: pink;
+            padding: .75em 2.0625em;
+            justify-self: center;
+            align-items:  center;
+            gap:.875rem;
+            
+            .face-smile{
+                font-size: 1.1rem;
+            }
+        }
+    }
+
+    /* padding:5rem; 
+    flex-direction: column;
+    gap:2.5rem; 
+    .tool-bar{
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        p:nth-child(2){
+           margin-left: auto;
+        }
+    }
+    .image-preview{
+        background-color: purple;
+        color: hotpink;
+        font-family: 1.2rem;
+        font-weight: 500;
+        padding: .50em .875em;
+        border-radius: .75rem;
+    } 
+    
+    .images-section{
+        
+    } */
 }
