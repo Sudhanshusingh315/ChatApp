@@ -19,7 +19,8 @@ const chatSchema = new Schema(
             default: "text",
         },
         imageWithText: {
-            type: Array,
+            type:Array,
+            default:undefined
         },
         message: {
             type: String,

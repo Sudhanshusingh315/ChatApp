@@ -20,7 +20,7 @@ import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModa
 import { createGroup } from "../../api/chat.api";
 import { chatTypes, messageTypes } from "../../constants/contants";
 import { storage } from "../../utils/firebase/firebase";
-import { ref, uploadBytesResumable } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import ImageWithText from "../../components/Modals/ImageWithText/ImageWithText";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
@@ -38,8 +38,8 @@ export default function Chat() {
     const [fileImages, setFileImage] = useState("");
     const [groupName, setGroupName] = useState("");
     const [openPopUp, setOpenPopUp] = useState(false);
-    const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     // socket init
@@ -146,7 +146,13 @@ export default function Chat() {
     // send the message
     const sendMessage = (message) => {
         if (!message) return;
-
+        // this will only run for images.
+        let messageType,imageWithTextdata;
+        if (message?.image) {
+            messageType = messageTypes.IMAGEWITHTEXT;
+            imageWithTextdata = message
+            message = null;
+        }
         // decide on the basics of chat application.
         const chatType = selectedChat?.chatType;
         let emitInfo = null;
@@ -154,12 +160,15 @@ export default function Chat() {
             case chatTypes.OneOnOne:
                 emitInfo = {
                     message,
+                    ...(messageType && { messageType }),
+                    ...(imageWithTextdata && {imageWithText:imageWithTextdata}),
                     senderId: userInfo?.userId,
                     recipientId: selectedChat?._id,
                     createdAt: new Date().getTime(),
                     updatedAt: new Date().getTime(),
                     chatType: chatTypes.OneOnOne,
                 };
+                console.log("emitInfo when image included",emitInfo)
                 socket?.emit("sendMessage", emitInfo);
 
                 setMessages((prev) => {
@@ -232,34 +241,26 @@ export default function Chat() {
         setOpenImageWithTextModal(true);
     };
     const handleClick = (e) => {
-        console.log("this is handleClick ",e); 
-        e.preventDefault();
-        e.stopPropagation();
         // e.stopPropagation();
         if (imageRef?.current) {
+            imageRef.current.value = "";
             console.log("clicked now and i have ref");
             imageRef.current.click();
         }
     };
     const handleFileChange = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log("hiiiiiiiiiiii");
-        // e.preventDefault();
-        // console.log("here is the file change",e.target.files)
-        // // setFileImage(e.target.files[0]);
-        // // if(!e.target?.files) return
+        // e.stopPropagation();
+        if (!e.target?.files) return;
+        const file = e.target?.files[0];
+        setOpenPopUp(false);
+        console.log("fileImage", file);
+        const storageRef = ref(storage, `images/${file.name}`);
+        console.log("storage ref is ", storageRef);
 
-        // // setOpenPopUp(false);
-        // // const storageRef = ref(
-        // //     storage,
-        // //     `images/${fileImages}+ ${new Date().getTime()}`
-        // // );
-        // // console.log("storage ref is ",storageRef);
-        // // uploadFileToFireBase(storageRef, fileImages);
-        // handleOpenImageWithTextModal();
+        uploadFileToFireBase(storageRef, file);
+        handleOpenImageWithTextModal();
     };
-console.log("fileImage",fileImages);
+    console.log("fileImage", fileImages);
     const renderMessage = (messageType) => {
         switch (messageType) {
             case messageTypes.TEXT:
@@ -285,51 +286,56 @@ console.log("fileImage",fileImages);
         return onlineUsers?.includes(id);
     };
 
-    // const uploadFileToFireBase = (storageRef, file) => {
-    //     console.log("uploading file to fireBase");
-    //     const uploadTask = uploadBytesResumable(storageRef, file);
-    //     uploadTask.on(
-    //         "state_changed",
-    //         (snapshot) => {
-    //             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-    //             const progress =
-    //                 (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-    //             console.log("Upload is " + progress + "% done");
-    //             switch (snapshot.state) {
-    //                 case "paused":
-    //                     console.log("Upload is paused");
-    //                     break;
-    //                 case "running":
-    //                     console.log("Upload is running");
-    //                     break;
-    //             }
-    //         },
-    //         // (error) => {
-    //         //     // A full list of error codes is available at
-    //         //     // https://firebase.google.com/docs/storage/web/handle-errors
-    //         //     switch (error.code) {
-    //         //         case "storage/unauthorized":
-    //         //             // User doesn't have permission to access the object
-    //         //             break;
-    //         //         case "storage/canceled":
-    //         //             // User canceled the upload
-    //         //             break;
+    const uploadFileToFireBase = (storageRef, file) => {
+        console.log("uploading file to fireBase");
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                console.log("bytesTransferred", snapshot.bytesTransferred);
+                console.log("totlaBytes", snapshot.totalBytes);
+                const progress = Math.round(
+                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                );
 
-    //         //         // ...
+                console.log("Upload is " + progress + "% done");
+                switch (snapshot.state) {
+                    case "paused":
+                        console.log("Upload is paused");
+                        break;
+                    case "running":
+                        console.log("Upload is running");
+                        break;
+                }
+            },
+            (error) => {
+                // A full list of error codes is available at
+                // https://firebase.google.com/docs/storage/web/handle-errors
+                switch (error.code) {
+                    case "storage/unauthorized":
+                        // User doesn't have permission to access the object
+                        break;
+                    case "storage/canceled":
+                        // User canceled the upload
+                        break;
 
-    //         //         case "storage/unknown":
-    //         //             // Unknown error occurred, inspect error.serverResponse
-    //         //             break;
-    //         //     }
-    //         // },
-    //         () => {
-    //             // Upload completed successfully, now we can get the download URL
-    //             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-    //                 console.log("File available at", downloadURL);
-    //             });
-    //         }
-    //     );
-    // };
+                    // ...
+
+                    case "storage/unknown":
+                        // Unknown error occurred, inspect error.serverResponse
+                        break;
+                }
+            },
+            async () => {
+                // Upload completed successfully, now we can get the download URL
+                const fileImageFireBase = await getDownloadURL(
+                    uploadTask.snapshot.ref
+                );
+                setFileImage(fileImageFireBase);
+            }
+        );
+    };
 
     const getLastSeenMessage = (lastSeenTimestamp) => {
         const lastSeen = new Date(lastSeenTimestamp);
@@ -552,15 +558,14 @@ console.log("fileImage",fileImages);
                     </div>
                 </div>
             </div>
-
             {/* chat conponent */}
             {/* todo: break this into two components */}
             {selectedChat ? (
                 <div
                     className="chat-container"
                     onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("i'm being clicked")
+                        // e.stopPropagation();
+                        console.log("i'm being clicked");
                         setOpenPopUp(false);
                     }}
                 >
@@ -612,7 +617,7 @@ console.log("fileImage",fileImages);
                         )}
 
                         {/* todo: keep this for later */}
-                        {/* <div className="owner bg-secondary-400">
+                        <div className="owner bg-secondary-400">
                             <img
                                 className="message-image"
                                 src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk="
@@ -621,15 +626,22 @@ console.log("fileImage",fileImages);
                             <p className="text-image">
                                 Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk
                             </p>
-                        </div> */}
+                        </div>
                     </div>
 
                     {/* message box input */}
                     <div className="send-chat-configuration bg-secondary-400">
+                        <input
+                            ref={imageRef}
+                            type="file"
+                            className="photo-video"
+                            multiple
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
                         <button
                             className="attachments"
                             onClick={(e) => {
-                                e.preventDefault();
                                 e.stopPropagation();
                                 setOpenPopUp((prev) => !prev);
                             }}
@@ -644,21 +656,13 @@ console.log("fileImage",fileImages);
                                 <p
                                     className="li-media"
                                     mediatype="photo"
-                                    onClick={(e)=>{
-                                        console.log("onclick was clicked")
-                                        handleClick(e)}}
+                                    onClick={(e) => {
+                                        handleClick(e);
+                                    }}
                                 >
                                     Photos and Videos
                                 </p>
-                                <input
-                                    ref={imageRef}
-                                    type="file"
-                                    // className="photo-video"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                />
-                                
+
                                 <p className="li-pdf" mediatype="document">
                                     Documents
                                 </p>
@@ -689,8 +693,9 @@ console.log("fileImage",fileImages);
 
                     <ImageWithText
                         open={openImageWithTextModal}
-                        images={fileImages}
+                        image={fileImages}
                         onClose={handleCloseImageWithTextModal}
+                        sendMessage={sendMessage}
                     />
                 </div>
             ) : (

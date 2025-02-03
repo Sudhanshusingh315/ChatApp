@@ -101,6 +101,7 @@ export const saveMessagesWithSocketIo = async (messageData) => {
             groupParticipantIds,
             chatType,
             roomId,
+            imageWithText
         } = messageData;
 
         let saveMessage;
@@ -113,9 +114,10 @@ export const saveMessagesWithSocketIo = async (messageData) => {
                     recipientId:
                         Types.ObjectId.createFromHexString(recipientId),
                     messageType,
-                    message: message,
+                    ...(message &&{message}),
                     ...(createdAt && { createdAt }),
                     ...(updatedAt && { updatedAt }),
+                    ...(imageWithText && {imageWithText})
                 });
 
                 break;
