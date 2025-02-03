@@ -40,6 +40,7 @@ export default function Chat() {
     const [openPopUp, setOpenPopUp] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
+    const [messageSeen, setMessageSeen] = useState([]);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     // socket init
@@ -55,6 +56,32 @@ export default function Chat() {
                 );
             });
             socket.on("recieveMessages", (emittedInfo) => {
+                if (selectedChat?._id !== emittedInfo?.senderId) {
+                    setMessageSeen((prev) => {
+                        const userIndex = prev.findIndex(
+                            (item) => item?.senderId === emittedInfo?.senderId
+                        );
+
+                        if (userIndex !== -1) {
+                            return prev.map((item, index) => {
+                                return index === userIndex
+                                    ? {
+                                          ...item,
+                                          unSeenMessage: item.unSeenMessage + 1,
+                                      }
+                                    : item;
+                            });
+                        } else {
+                            return [
+                                ...prev,
+                                {
+                                    senderId: emittedInfo?.senderId,
+                                    unSeenMessage: 1,
+                                },
+                            ];
+                        }
+                    });
+                }
                 setMessages((prev) => {
                     return [...prev, emittedInfo];
                 });
@@ -74,7 +101,8 @@ export default function Chat() {
             }
         };
     }, [socket]);
-
+    console.log("selected chat id", selectedChat);
+    console.log("seen message array", messageSeen);
     // todo: put the get contact somewhere else.
     useEffect(() => {
         (async function () {
@@ -142,15 +170,16 @@ export default function Chat() {
 
         // get all past message
     };
-
+    console.log("messages", messages);
     // send the message
     const sendMessage = (message) => {
+        console.log("messages is", message);
         if (!message) return;
         // this will only run for images.
-        let messageType,imageWithTextdata;
+        let messageType, imageWithTextdata;
         if (message?.image) {
             messageType = messageTypes.IMAGEWITHTEXT;
-            imageWithTextdata = message
+            imageWithTextdata = message;
             message = null;
         }
         // decide on the basics of chat application.
@@ -159,16 +188,18 @@ export default function Chat() {
         switch (chatType) {
             case chatTypes.OneOnOne:
                 emitInfo = {
-                    message,
-                    ...(messageType && { messageType }),
-                    ...(imageWithTextdata && {imageWithText:imageWithTextdata}),
+                    ...(message && { message }),
+                    messageType: "text",
+                    ...(imageWithTextdata && {
+                        imageWithText: imageWithTextdata,
+                    }),
                     senderId: userInfo?.userId,
                     recipientId: selectedChat?._id,
                     createdAt: new Date().getTime(),
                     updatedAt: new Date().getTime(),
                     chatType: chatTypes.OneOnOne,
                 };
-                console.log("emitInfo when image included",emitInfo)
+                console.log("emitInfo when image included", emitInfo);
                 socket?.emit("sendMessage", emitInfo);
 
                 setMessages((prev) => {
@@ -180,19 +211,20 @@ export default function Chat() {
             case chatTypes.groupChat:
                 emitInfo = {
                     roomId: selectedChat?._id,
-                    message,
+                    ...(message && { message }),
+                    messageType,
+                    ...(imageWithTextdata && { imageWithTextdata }),
                     senderId: userInfo?.userId,
                     chatType: chatTypes.groupChat,
                     isGroup: true,
                     groupName: selectedChat?.groupName,
                     groupParticipantIds: selectedChat?.participants,
                 };
-                if (socket) {
-                    socket.emit("sendGroupMessages", emitInfo);
-                } else {
-                    console.log("don't have socket");
-                }
+                socket.emit("sendGroupMessages", emitInfo);
 
+                setMessages((prev) => {
+                    return [...prev, emitInfo];
+                });
                 break;
             default:
                 break;
@@ -261,9 +293,10 @@ export default function Chat() {
         handleOpenImageWithTextModal();
     };
     console.log("fileImage", fileImages);
-    const renderMessage = (messageType) => {
+    const renderMessage = (messageType, message, imageWithText) => {
         switch (messageType) {
             case messageTypes.TEXT:
+                return message;
                 break;
 
             case messageTypes.IMAGE:
@@ -272,12 +305,23 @@ export default function Chat() {
             case messageTypes.PDF:
                 break;
             case messageTypes.IMAGEWITHTEXT:
+                return (
+                    <>
+                        <img
+                            className="message-image"
+                            src={imageWithText[0]?.image}
+                            alt=""
+                        />
+                        <p className="text-image">{imageWithText[0]?.text}</p>
+                    </>
+                );
                 break;
 
             case messageTypes.PDFWITHTEXT:
                 break;
 
             default:
+                return "Message more correctly setup";
                 break;
         }
     };
@@ -364,6 +408,21 @@ export default function Chat() {
             return `Last seen yesterday at ${formatTime(lastSeen)}`;
         } else {
             return `Last seen on ${lastSeen.toDateString()}`; // Example: "Last seen on Fri Feb 02 2025"
+        }
+    };
+
+    const showUnSeenNumberOfMessages = (info) => {
+        const indexOfUser = messageSeen?.findIndex(
+            (sender) => sender?.senderId === info?._id
+        );
+        console.log("indexOfusers", indexOfUser);
+        if (indexOfUser === -1) {
+            return "";
+        } else {
+            const value = messageSeen[indexOfUser]?.unSeenMessage;
+            console.log(`number of messages are ${value}`);
+            
+            return value>9 ? "+9": value;
         }
     };
 
@@ -461,10 +520,10 @@ export default function Chat() {
                                 <div className="chat-date">
                                     <p className="chat-data text-accent/80 ">
                                         {/* todo: last message, either sent or revieve here */}
-                                        1/1/1970
                                     </p>
                                     <p className="number-of-messages bg-secondary-400">
-                                        +9
+                                        {/* +9 */}
+                                        {showUnSeenNumberOfMessages(info)}
                                     </p>
                                 </div>
                             </div>
@@ -598,7 +657,16 @@ export default function Chat() {
                     {/* chat component */}
                     <div className="chat-talking-section text-accent">
                         {messages?.map(
-                            ({ recipientId, senderId, message }, index) => {
+                            (
+                                {
+                                    recipientId,
+                                    senderId,
+                                    message,
+                                    messageType,
+                                    imageWithText,
+                                },
+                                index
+                            ) => {
                                 return (
                                     <div
                                         // todo: can we do a better index than this?
@@ -610,14 +678,19 @@ export default function Chat() {
                                         }
                                     >
                                         {/* call the renderMessage function here */}
-                                        {message}
+                                        {/* {message} */}
+                                        {renderMessage(
+                                            messageType,
+                                            message,
+                                            imageWithText
+                                        )}
                                     </div>
                                 );
                             }
                         )}
 
                         {/* todo: keep this for later */}
-                        <div className="owner bg-secondary-400">
+                        {/* <div className="owner bg-secondary-400">
                             <img
                                 className="message-image"
                                 src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk="
@@ -626,7 +699,7 @@ export default function Chat() {
                             <p className="text-image">
                                 Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk
                             </p>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* message box input */}

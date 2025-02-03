@@ -21,7 +21,7 @@ export default function ImageWithText({ open, image, onClose, sendMessage}) {
     const handleOnClose = () =>{
         // todo: handle on close, delet the file from the firebase store.
     }
-
+    
     const onTextChange = (e) =>{
         const text = e?.target?.value;
         setTextWithImage(text);

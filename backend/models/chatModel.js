@@ -19,8 +19,8 @@ const chatSchema = new Schema(
             default: "text",
         },
         imageWithText: {
-            type:Array,
-            default:undefined
+            type: Array,
+            default: undefined,
         },
         message: {
             type: String,
@@ -38,20 +38,25 @@ const chatSchema = new Schema(
             type: Number,
             default: new Date().getTime(),
         },
-        isGroup:{
-            type:Boolean,
-            default:false
+        isGroup: {
+            type: Boolean,
+            default: false,
         },
-        groupName:{
-            type:String,
+        groupName: {
+            type: String,
         },
-        groupRecipientIds:[{type:mongoose.Schema.Types.ObjectId,ref:"user"}],
-        roomId:{
-            type:mongoose.Schema.Types.ObjectId, ref:"groupChat"
-        }
-        
-    }
-    ,
+        groupRecipientIds: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "user",
+                default: undefined,
+            },
+        ],
+        roomId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "groupChat",
+        },
+    },
     {
         timestamps: { currentTime: () => Date.now() },
     }
