@@ -14,35 +14,100 @@ export const contactPipeline = (userId) => {
                 from: "users",
                 localField: "contacts",
                 foreignField: "_id",
-                pipeline:[
+                pipeline: [
                     {
-                        $set:{
-                            "chatType":chatTypes?.OneOnOne
-                        }
-                    }
+                        $set: {
+                            chatType: chatTypes?.OneOnOne,
+                        },
+                    },
                 ],
                 as: "contactDetails",
             },
         },
         {
-            $lookup:{
-                from:"groupchats",
-                localField:"groups",
-                foreignField:"_id",
-                pipeline:[
+            $lookup: {
+                from: "groupchats",
+                localField: "groups",
+                foreignField: "_id",
+                pipeline: [
                     {
-                        $set:{
-                            "chatType":chatTypes?.groupChat
-                        }
-                    }
+                        $set: {
+                            chatType: chatTypes?.groupChat,
+                        },
+                    },
                 ],
-                as:"myGroups"
-            }
+                as: "myGroups",
+            },
+        },
+        {
+            $lookup: {
+                from: "chats",
+                let: {
+                    userId: "$_id",
+                    contactId: "$contacts",
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $or: [
+                                    {
+                                        $and: [
+                                            { $eq: ["$senderId", "$$userId"] },
+                                            {
+                                                $in: [
+                                                    "$recipientId",
+                                                    "$$contactId",
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        $and: [
+                                            {
+                                                $in: [
+                                                    "$senderId",
+                                                    "$$contactId",
+                                                ],
+                                            },
+                                            {
+                                                $eq: [
+                                                    "$recipientId",
+                                                    "$$userId",
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $sort: { createdAt: -1 },
+                    },
+                    {
+                        $group: {
+                            _id: {
+                                $cond: [
+                                    {
+                                        $eq: ["$senderId", "$$userId"],
+                                    },
+                                    "$recipientId",
+                                    "$senderId",
+                                ],
+                            },
+                            lastMessage: { $first: "$$ROOT" },
+                        },
+                    },
+                ],
+                as: "lastMessage",
+            },
         },
         {
             $project: {
                 contactDetails: 1,
-                myGroups:1,
+                myGroups: 1,
+                lastMessage: 1,
                 _id: 0,
             },
         },
@@ -67,11 +132,11 @@ export const getAllMessagesOneOnOne = (ownerId, recieverId) => {
 export const getAllMessagesGroup = (roomId) => {
     // pending
     // todo: add pagination on this
-    let roomIdObjectId = new mongoose.Types.ObjectId(roomId); 
+    let roomIdObjectId = new mongoose.Types.ObjectId(roomId);
     return [
         {
             $match: {
-               "roomId": roomIdObjectId 
+                roomId: roomIdObjectId,
             },
         },
     ];

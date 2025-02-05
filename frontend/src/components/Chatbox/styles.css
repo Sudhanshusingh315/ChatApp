@@ -1,0 +1,78 @@
+.chat-inbox {
+    display: flex;
+    padding: 0.625rem 1rem;
+    justify-content: space-around;
+    align-items: start;
+    gap: 0.75rem;
+    position: relative;
+    .chat-profile {
+        border-radius: 50%;
+        width: 50px;
+        aspect-ratio: 1/1;
+    }
+
+    .name::after {
+        content: "";
+        width: 12px;
+        border-radius: 50%;
+        aspect-ratio: 1/1;
+        top: 0;
+        left: 0;
+        display: block;
+    }
+    .name[status="online"]::after {
+        background-color: greenyellow;
+    }
+
+    .name[status="offline"]::after {
+        background-color: hsl(0, 2%, 55%);
+    }
+    .chat-info {
+        justify-self: start;
+        flex: 1;
+    }
+    .name {
+        margin-block-end: 0.15rem;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.525rem;
+    }
+
+    .last-message {
+        display: block;
+        width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        opacity: 0.8;
+    }
+    .chat-data {
+        width: max-content;
+        font-size: 0.75rem;
+    }
+    .number-of-messages {
+        margin-top: 0.6rem;
+        width: 1.5rem;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        font-size: 0.875rem;
+        justify-self: flex-end;
+        align-self: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+.chat-inbox::after {
+    content: "";
+    display: block;
+    width: 81%;
+    height: 2px;
+    position: absolute;
+    background-color: var(--border-list);
+    bottom: 0;
+    right: 0;
+    opacity: 0.2;
+}

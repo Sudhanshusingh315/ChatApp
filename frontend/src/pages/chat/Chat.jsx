@@ -1,32 +1,33 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
-import { CiSearch } from "react-icons/ci";
 import { CiChat1 } from "react-icons/ci";
-import { CiMenuKebab } from "react-icons/ci";
-import { IoIosAttach } from "react-icons/io";
 import { CiCirclePlus } from "react-icons/ci";
-import { IoSendSharp } from "react-icons/io5";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import reducer, {
+import {
     clearMessage,
     getInitMessages,
     getInitMessagesGroup,
 } from "../../features/messages/messageSlice";
-import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModal";
 import { createGroup } from "../../api/chat.api";
 import { chatTypes, messageTypes } from "../../constants/contants";
 import { storage } from "../../utils/firebase/firebase";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import ImageWithText from "../../components/Modals/ImageWithText/ImageWithText";
+import { ChatBox } from "../../components/Chatbox/Chatbox";
+import { Chatcontainer } from "../../components/Chatcontainer/Chatcontainer";
+import ChatBoxSkeleton from "../../components/Skeletons/ChatboxSkeletons/ChatBoxSkeleton";
+import ChatcontainerSkeleton from "../../components/Skeletons/ChatcontainerSkeletons/ChatcontainerSkeleton";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
-    const { initMessages } = useSelector((state) => state.message);
+    const { initMessages, isChatLoading } = useSelector(
+        (state) => state.message
+    );
     const [chatBox, setChatBox] = useState([]);
+    const [lastMessageInChatBox, setLastMessageInChatBox] = useState([]);
     const [messages, setMessages] = useState([]);
     const [messageBox, setMessageBox] = useState("");
     const [selectedChat, setSelectedChat] = useState(null);
@@ -41,10 +42,11 @@ export default function Chat() {
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
     const [messageSeen, setMessageSeen] = useState([]);
+    const [isChatBoxLoaded, setIsChatBoxLoaded] = useState(true);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     // socket init
-    console.log("messages", messages);
+    console.log("lastMessage in chat box", lastMessageInChatBox);
     useEffect(() => {
         if (!socket) return;
         if (socket || !socket.connected()) {
@@ -57,6 +59,7 @@ export default function Chat() {
             });
             socket.on("recieveMessages", (emittedInfo) => {
                 if (selectedChat?._id !== emittedInfo?.senderId) {
+                    // setMessageSeen for the unseen message notification on the right side of the chat ui
                     setMessageSeen((prev) => {
                         const userIndex = prev.findIndex(
                             (item) => item?.senderId === emittedInfo?.senderId
@@ -101,10 +104,9 @@ export default function Chat() {
             }
         };
     }, [socket]);
-    console.log("selected chat id", selectedChat);
-    console.log("seen message array", messageSeen);
     // todo: put the get contact somewhere else.
     useEffect(() => {
+        setIsChatBoxLoaded(true);
         (async function () {
             const { data } = await axios.get(
                 `/api/searchContact/${userInfo?.userId}/myContact`,
@@ -112,12 +114,16 @@ export default function Chat() {
                     headers: { Authorization: `Bearer ${userInfo?.token}` },
                 }
             );
+            setIsChatBoxLoaded(false);
             console.log("data from groups", data);
             setChatBox((prev) => {
                 return [
                     ...data?.data[0]?.contactDetails,
                     ...data?.data[0]?.myGroups,
                 ];
+            });
+            setLastMessageInChatBox((prev) => {
+                return [...data?.data[0].lastMessage];
             });
         })();
     }, []);
@@ -129,7 +135,7 @@ export default function Chat() {
             });
         }
     }, [initMessages]);
-    console.log("initMessages", initMessages);
+
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
@@ -170,11 +176,11 @@ export default function Chat() {
 
         // get all past message
     };
-    console.log("messages", messages);
     // send the message
+    console.log("messages", messages);
     const sendMessage = (message) => {
-        console.log("messages is", message);
         if (!message) return;
+
         // this will only run for images.
         let messageType, imageWithTextdata;
         if (message?.image) {
@@ -189,7 +195,9 @@ export default function Chat() {
             case chatTypes.OneOnOne:
                 emitInfo = {
                     ...(message && { message }),
-                    messageType: "text",
+                    ...(messageType
+                        ? { messageType }
+                        : { messageType: "text" }),
                     ...(imageWithTextdata && {
                         imageWithText: imageWithTextdata,
                     }),
@@ -212,7 +220,7 @@ export default function Chat() {
                 emitInfo = {
                     roomId: selectedChat?._id,
                     ...(message && { message }),
-                    messageType,
+                    ...(messageType && { messageType }),
                     ...(imageWithTextdata && { imageWithTextdata }),
                     senderId: userInfo?.userId,
                     chatType: chatTypes.groupChat,
@@ -274,6 +282,7 @@ export default function Chat() {
     };
     const handleClick = (e) => {
         // e.stopPropagation();
+        console.log("handleClick was called");
         if (imageRef?.current) {
             imageRef.current.value = "";
             console.log("clicked now and i have ref");
@@ -292,7 +301,7 @@ export default function Chat() {
         uploadFileToFireBase(storageRef, file);
         handleOpenImageWithTextModal();
     };
-    console.log("fileImage", fileImages);
+
     const renderMessage = (messageType, message, imageWithText) => {
         switch (messageType) {
             case messageTypes.TEXT:
@@ -411,21 +420,48 @@ export default function Chat() {
         }
     };
 
+    // todo: reuse this in it's own component
     const showUnSeenNumberOfMessages = (info) => {
         const indexOfUser = messageSeen?.findIndex(
             (sender) => sender?.senderId === info?._id
         );
         console.log("indexOfusers", indexOfUser);
         if (indexOfUser === -1) {
-            return "";
+            return;
         } else {
             const value = messageSeen[indexOfUser]?.unSeenMessage;
             console.log(`number of messages are ${value}`);
-            
-            return value>9 ? "+9": value;
+
+            return value > 9 ? "+9" : value;
         }
     };
+    function whoSentLastMessage(chatBoxUserId) {
+        // console.log("chatBoxid is",chatBoxUserId);
+        if (lastMessageInChatBox) {
+            const found = lastMessageInChatBox.find((element) => {
+                return element?._id === chatBoxUserId;
+            });
+            console.log("found", chatBoxUserId);
+            if (found) {
+                const { messageType, message, imageWithText } =
+                    found?.lastMessage;
 
+                switch (messageType) {
+                    case messageTypes.TEXT:
+                        return message;
+                        break;
+                    case messageTypes.IMAGEWITHTEXT:
+                        return "Image with text";
+                    default:
+                        break;
+                }
+            }
+        } else {
+            console.log(
+                "skipping becuase no last seen message array was found"
+            );
+        }
+    }
     return (
         <div className="chat-wrapper">
             <div className="sidebar">
@@ -470,65 +506,24 @@ export default function Chat() {
                 </div>
                 <div className="chat-inboxes text-accent">
                     {/* todo: needs a shimer effect IMPORTANT */}
-                    {chatBox?.map((info, index) => {
-                        return (
-                            <div
-                                key={info?._id}
-                                className="chat-inbox "
-                                onClick={(e) => {
-                                    if (
-                                        info?._id !== selectedChat?._id ||
-                                        !selectedChat
-                                    ) {
-                                        console.log(
-                                            `info ${info?._id} selected chat ${selectedChat?._id}`
-                                        );
-                                        handleSelectChat(e, info);
-                                    } else {
-                                        console.log(
-                                            "initial messages are already loaded"
-                                        );
-                                    }
-                                }}
-                            >
-                                <img
-                                    className="chat-profile"
-                                    src={info?.profileImage}
-                                    alt="profile image"
+
+                    {isChatBoxLoaded ? (
+                        <ChatBoxSkeleton />
+                    ) : (
+                        chatBox?.map((info, index) => {
+                            return (
+                                <ChatBox
+                                    key={index}
+                                    info={info}
+                                    selectedChat={selectedChat}
+                                    isOnline={isOnline}
+                                    handleSelectChat={handleSelectChat}
+                                    lastMessageInChatBox={lastMessageInChatBox}
+                                    whoSentLastMessage={whoSentLastMessage}
                                 />
-                                {/* todo: replace with firstname and last name */}
-                                <div className="chat-info">
-                                    <p
-                                        className="name"
-                                        status={
-                                            info?.groupName
-                                                ? ""
-                                                : isOnline(info?._id)
-                                                ? "online"
-                                                : "offline"
-                                        }
-                                    >
-                                        {info?.firstName && info?.lastName
-                                            ? `${info?.firstName} ${info?.lastName}`
-                                            : `${info?.groupName}`}
-                                    </p>
-                                    <p className="last-message">
-                                        {/* todo:last message, either send or recieve here. */}
-                                        Happy makar sankaranti kjfalkd
-                                    </p>
-                                </div>
-                                <div className="chat-date">
-                                    <p className="chat-data text-accent/80 ">
-                                        {/* todo: last message, either sent or revieve here */}
-                                    </p>
-                                    <p className="number-of-messages bg-secondary-400">
-                                        {/* +9 */}
-                                        {showUnSeenNumberOfMessages(info)}
-                                    </p>
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
 
                     {/* todo: whole component needs a refactor IMPORTANT*/}
                     {/* todo : remove this piece of code */}
@@ -618,159 +613,29 @@ export default function Chat() {
                 </div>
             </div>
             {/* chat conponent */}
-            {/* todo: break this into two components */}
             {selectedChat ? (
-                <div
-                    className="chat-container"
-                    onClick={(e) => {
-                        // e.stopPropagation();
-                        console.log("i'm being clicked");
-                        setOpenPopUp(false);
-                    }}
-                >
-                    {/* header */}
-                    <div className="chat-header-section text-accent bg-primary/10">
-                        <img src={selectedChat?.profileImage} alt="" />
-                        <div className="user-info">
-                            <p className="chat-selected-user">
-                                {selectedChat?.participants
-                                    ? `${selectedChat?.groupName}`
-                                    : `${selectedChat?.firstName} ${selectedChat?.lastName}`}
-                            </p>
-                            <span className="last-seen">
-                                {selectedChat?.participants
-                                    ? ""
-                                    : isOnline(selectedChat?._id)
-                                    ? "Online"
-                                    : getLastSeenMessage(
-                                          selectedChat?.lastSeen
-                                      )}
-                            </span>
-                        </div>
-                        <p className="search-icon">
-                            <CiSearch />
-                        </p>
-                        <p className="kebab-icon">
-                            <CiMenuKebab />
-                        </p>
-                    </div>
-                    {/* chat component */}
-                    <div className="chat-talking-section text-accent">
-                        {messages?.map(
-                            (
-                                {
-                                    recipientId,
-                                    senderId,
-                                    message,
-                                    messageType,
-                                    imageWithText,
-                                },
-                                index
-                            ) => {
-                                return (
-                                    <div
-                                        // todo: can we do a better index than this?
-                                        key={index}
-                                        className={
-                                            userInfo?.userId === senderId
-                                                ? "owner bg-secondary-400"
-                                                : "reciever bg-[#1E1D2B]"
-                                        }
-                                    >
-                                        {/* call the renderMessage function here */}
-                                        {/* {message} */}
-                                        {renderMessage(
-                                            messageType,
-                                            message,
-                                            imageWithText
-                                        )}
-                                    </div>
-                                );
-                            }
-                        )}
-
-                        {/* todo: keep this for later */}
-                        {/* <div className="owner bg-secondary-400">
-                            <img
-                                className="message-image"
-                                src="https://media.istockphoto.com/id/1403500817/photo/the-craggies-in-the-blue-ridge-mountains.jpg?s=612x612&w=0&k=20&c=N-pGA8OClRVDzRfj_9AqANnOaDS3devZWwrQNwZuDSk="
-                                alt=""
-                            />
-                            <p className="text-image">
-                                Meowjdfkjsflkdsajfdsafalkdjfalkdsfjfdlkjsafkdsbv;jand;lkajf;kdajflkdafhdakjbva;jfdlkajfk
-                            </p>
-                        </div> */}
-                    </div>
-
-                    {/* message box input */}
-                    <div className="send-chat-configuration bg-secondary-400">
-                        <input
-                            ref={imageRef}
-                            type="file"
-                            className="photo-video"
-                            multiple
-                            accept="image/*"
-                            onChange={handleFileChange}
-                        />
-                        <button
-                            className="attachments"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenPopUp((prev) => !prev);
-                            }}
-                        >
-                            <IoIosAttach />
-                        </button>
-                        {openPopUp && (
-                            <div
-                                className="attachment-popup"
-                                id="attachment-popup"
-                            >
-                                <p
-                                    className="li-media"
-                                    mediatype="photo"
-                                    onClick={(e) => {
-                                        handleClick(e);
-                                    }}
-                                >
-                                    Photos and Videos
-                                </p>
-
-                                <p className="li-pdf" mediatype="document">
-                                    Documents
-                                </p>
-                                <p className="li-contact" mediatype="contact">
-                                    Contact
-                                </p>
-                            </div>
-                        )}
-                        <input
-                            value={messageBox}
-                            onChange={(e) => {
-                                setMessageBox((prev) => e.target.value);
-                            }}
-                            type="text"
-                            placeholder="Type a message here..."
-                        />
-                        <p
-                            className="send-message"
-                            onClick={() => {
-                                sendMessage(messageBox);
-                            }}
-                        >
-                            <IoSendSharp />
-                        </p>
-                    </div>
-
-                    {/* modal for sending images with text */}
-
-                    <ImageWithText
-                        open={openImageWithTextModal}
-                        image={fileImages}
-                        onClose={handleCloseImageWithTextModal}
-                        sendMessage={sendMessage}
-                    />
-                </div>
+                <Chatcontainer
+                    setOpenPopUp={setOpenPopUp}
+                    selectedChat={selectedChat}
+                    isOnline={isOnline}
+                    getLastSeenMessage={getLastSeenMessage}
+                    messages={messages}
+                    userInfo={userInfo}
+                    renderMessage={renderMessage}
+                    handleFileChange={handleFileChange}
+                    handleClick={handleClick}
+                    messageBox={messageBox}
+                    setMessageBox={setMessageBox}
+                    sendMessage={sendMessage}
+                    fileImages={fileImages}
+                    handleCloseImageWithTextModal={
+                        handleCloseImageWithTextModal
+                    }
+                    ref={imageRef}
+                    openImageWithTextModal={openImageWithTextModal}
+                    openPopUp={openPopUp}
+                    isChatLoading={isChatLoading}
+                />
             ) : (
                 <div className="text-accent">
                     {/* todo: pressing escap make the component switch to default selectesate that is null */}
