@@ -1,8 +1,9 @@
+import mongoose from "mongoose";
 import { contactPipeline } from "../aggregation/aggregation.pipeline.js";
 import { User } from "../models/userModel.js";
 
 export const searchContact = async (req, res) => {
-    const { email } = req.body;
+    const { email } = req.query;
     try {
         if (email) {
             const contact = await User.find({
@@ -28,10 +29,10 @@ export const searchContact = async (req, res) => {
 export const getAllContacts = async (req, res) => {
     try {
         const { userId } = req.params;
-        let contacts=null;
+        let contacts = null;
         if (userId) {
             contacts = await User.aggregate(contactPipeline(userId));
-        }else{
+        } else {
             throw new Error("user Id is not recognised");
         }
 
@@ -49,5 +50,38 @@ export const getAllContacts = async (req, res) => {
             success: false,
             error,
         });
+    }
+};
+
+export const AddToMyContacts = async (userId, contactId) => {
+    try {
+        console.log(`userid ${userId} contactId ${contactId}`);
+        const recipientId = new mongoose.Types.ObjectId(contactId);
+        const senderId = new mongoose.Types.ObjectId(userId);
+
+        const updatedConatct = await User.updateMany(
+            { _id: { $in: [senderId, recipientId] } },
+            [
+                {
+                    $set: {
+                        contacts: {
+                            $cond: {
+                                if: { $eq: ["$_id", senderId] },
+                                then: {
+                                    $addToSet: recipientId,
+                                },
+                                else: {
+                                    $addToSet: senderId,
+                                },
+                            },
+                        },
+                    },
+                },
+            ],
+            { new: true }
+        );
+        return updatedConatct;
+    } catch (error) {
+        console.log(error);
     }
 };

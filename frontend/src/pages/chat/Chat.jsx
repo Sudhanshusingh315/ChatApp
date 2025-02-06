@@ -19,7 +19,9 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { ChatBox } from "../../components/Chatbox/Chatbox";
 import { Chatcontainer } from "../../components/Chatcontainer/Chatcontainer";
 import ChatBoxSkeleton from "../../components/Skeletons/ChatboxSkeletons/ChatBoxSkeleton";
-import ChatcontainerSkeleton from "../../components/Skeletons/ChatcontainerSkeletons/ChatcontainerSkeleton";
+import { useDebounce } from "../../hooks/useDebounce";
+import { SearchContactAPI } from "../../api/search.api";
+import SearchContact from "../../components/SearchContacts/SearchContact";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
@@ -43,10 +45,13 @@ export default function Chat() {
     const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
     const [messageSeen, setMessageSeen] = useState([]);
     const [isChatBoxLoaded, setIsChatBoxLoaded] = useState(true);
+    const [searchContactGlobal, setSearchContactGlobal] = useState("");
+    const [globalSearchResults, setGlobalSearchResults] = useState([]);
+    const debouncedSearch = useDebounce(searchContactGlobal);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     // socket init
-    console.log("lastMessage in chat box", lastMessageInChatBox);
+    console.log("online users", onlineUsers);
     useEffect(() => {
         if (!socket) return;
         if (socket || !socket.connected()) {
@@ -58,6 +63,7 @@ export default function Chat() {
                 );
             });
             socket.on("recieveMessages", (emittedInfo) => {
+                console.log("recieveMessages", emittedInfo);
                 if (selectedChat?._id !== emittedInfo?.senderId) {
                     // setMessageSeen for the unseen message notification on the right side of the chat ui
                     setMessageSeen((prev) => {
@@ -88,6 +94,20 @@ export default function Chat() {
                 setMessages((prev) => {
                     return [...prev, emittedInfo];
                 });
+
+                // show up the chat box, when an unknown users sends you a message.
+                if (emittedInfo?.senderId) {
+                    setChatBox((prev) => {
+                        const foundContactId = prev?.find(
+                            (element) => element?._id === emittedInfo?.senderId
+                        );
+                        if (foundContactId) {
+                            console.log("i have found the id");
+                            return prev;
+                        }
+                        return [...prev, emittedInfo];
+                    });
+                }
             });
 
             socket.on("getOnlineUsers", (onlineUsers) => {
@@ -136,6 +156,19 @@ export default function Chat() {
         }
     }, [initMessages]);
 
+    useEffect(() => {
+        if (debouncedSearch) {
+            console.log("call the api here");
+            (async function () {
+                const { data } = await SearchContactAPI(debouncedSearch);
+                console.log("data is", data);
+                if (data) {
+                    setGlobalSearchResults([...data?.data]);
+                }
+            })();
+        }
+    }, [debouncedSearch]);
+console.log("chatBox",chatBox);
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
@@ -151,7 +184,7 @@ export default function Chat() {
                     setMessages([]);
                     initMessages = {
                         senderId: userInfo?.userId,
-                        recipientId: info?._id,
+                        recipientId: info?._id|| info?.recipientId,
                         token: userInfo?.token,
                     };
                     await dispatch(getInitMessages(initMessages));
@@ -169,6 +202,9 @@ export default function Chat() {
                 }
                 break;
             default:
+                console.log(
+                    "can not get messgaes, since there is no chatType defined"
+                );
                 break;
         }
 
@@ -190,7 +226,7 @@ export default function Chat() {
         }
         // decide on the basics of chat application.
         const chatType = selectedChat?.chatType;
-        let emitInfo = null;
+        let emitInfo = {};
         switch (chatType) {
             case chatTypes.OneOnOne:
                 emitInfo = {
@@ -206,6 +242,7 @@ export default function Chat() {
                     createdAt: new Date().getTime(),
                     updatedAt: new Date().getTime(),
                     chatType: chatTypes.OneOnOne,
+                    ...userInfo,
                 };
                 console.log("emitInfo when image included", emitInfo);
                 socket?.emit("sendMessage", emitInfo);
@@ -253,15 +290,12 @@ export default function Chat() {
                     (element) => element?.firstName === info?.firstName
                 )
             ) {
-                console.log("found it");
                 return [...prev];
             } else {
-                console.log("didn't find it");
                 return [...prev, info];
             }
         });
     };
-
     const handleFormAGroup = async () => {
         const result = await createGroup(
             groupCreation,
@@ -282,7 +316,6 @@ export default function Chat() {
     };
     const handleClick = (e) => {
         // e.stopPropagation();
-        console.log("handleClick was called");
         if (imageRef?.current) {
             imageRef.current.value = "";
             console.log("clicked now and i have ref");
@@ -294,7 +327,6 @@ export default function Chat() {
         if (!e.target?.files) return;
         const file = e.target?.files[0];
         setOpenPopUp(false);
-        console.log("fileImage", file);
         const storageRef = ref(storage, `images/${file.name}`);
         console.log("storage ref is ", storageRef);
 
@@ -352,13 +384,10 @@ export default function Chat() {
                     (snapshot.bytesTransferred / snapshot.totalBytes) * 100
                 );
 
-                console.log("Upload is " + progress + "% done");
                 switch (snapshot.state) {
                     case "paused":
-                        console.log("Upload is paused");
                         break;
                     case "running":
-                        console.log("Upload is running");
                         break;
                 }
             },
@@ -436,12 +465,10 @@ export default function Chat() {
         }
     };
     function whoSentLastMessage(chatBoxUserId) {
-        // console.log("chatBoxid is",chatBoxUserId);
         if (lastMessageInChatBox) {
             const found = lastMessageInChatBox.find((element) => {
                 return element?._id === chatBoxUserId;
             });
-            console.log("found", chatBoxUserId);
             if (found) {
                 const { messageType, message, imageWithText } =
                     found?.lastMessage;
@@ -462,6 +489,42 @@ export default function Chat() {
             );
         }
     }
+
+    function handleRemoveGroup(selectedContact) {
+        setGroupCreation((prev) => {
+            return prev.filter((element) => {
+                return element?._id !== selectedContact?._id;
+            });
+        });
+    }
+    const handleSearchContactsGlobally = (e) => {
+        if (!e.target.value) return;
+        const searchValue = e.target.value;
+        setSearchContactGlobal((prev) => searchValue);
+    };
+
+    const messageThisConatct = (e, contact) => {
+        const newContact = { ...contact, chatType: chatTypes.OneOnOne };
+        const chatBoxOneOnOne = chatBox?.filter(
+            (elements) => elements?.chatType != chatTypes.groupChat
+        );
+        console.log("chat box one on one", chatBoxOneOnOne);
+
+        const foundTheConact = chatBoxOneOnOne?.find(
+            (element) => element._id === newContact?._id
+        );
+        if (!foundTheConact) {
+            setChatBox((prev) => {
+                return [...prev, newContact];
+            });
+
+            setSelectedChat(newContact);
+            handleSelectChat(e, newContact);
+            setGlobalSearchResults([]);
+            setSearchContactGlobal("");
+        }
+    };
+
     return (
         <div className="chat-wrapper">
             <div className="sidebar">
@@ -482,27 +545,46 @@ export default function Chat() {
                             <CiChat1 />
                         </p>
                     </div>
-                    <div className="chat-search">
-                        {/* todo : add the search icon and make that respnosive as well */}
-                        {/* todo : add the focu:visible class */}
-                        <input
-                            type="text"
-                            className="bg-secondary-400/85 hover:outline-primary hover:outline-4 hover:outline-double"
-                            placeholder="search contacts globally"
-                        />
-                    </div>
-                    <div className="messages-category">
-                        <p className="bg-secondary-400/85 text-primary">All</p>
-                        <p className="bg-secondary-400/85 text-primary">
-                            Unread
-                        </p>
-                        <p className="bg-secondary-400/85 text-primary">
-                            Favorites
-                        </p>
-                        <p className="bg-secondary-400/85 text-primary">
-                            Groups
-                        </p>
-                    </div>
+                    {/* search contact */}
+                    {/* todo : add the search icon and make that respnosive as well */}
+                    {/* todo : add the focu:visible class */}
+                    <SearchContact
+                        handleSearchContactsGlobally={
+                            handleSearchContactsGlobally
+                        }
+                        searchContactGlobal={searchContactGlobal}
+                    />
+                    {globalSearchResults.length >= 1 ? (
+                        <div className="grid px-4 gap-1 bg-secondary-400 rounded-b-md py-3">
+                            {globalSearchResults?.map((contact, index) => {
+                                return (
+                                    <p
+                                        className="rounded-md px-2 py-3 bg-secondary-300 text-primary-bg font-semibold"
+                                        onClick={(e) => {
+                                            messageThisConatct(e, contact);
+                                        }}
+                                    >
+                                        {contact?.firstName} {contact?.lastName}
+                                    </p>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="messages-category">
+                            <p className="bg-secondary-400/85 text-primary">
+                                All
+                            </p>
+                            <p className="bg-secondary-400/85 text-primary">
+                                Unread
+                            </p>
+                            <p className="bg-secondary-400/85 text-primary">
+                                Favorites
+                            </p>
+                            <p className="bg-secondary-400/85 text-primary">
+                                Groups
+                            </p>
+                        </div>
+                    )}
                 </div>
                 <div className="chat-inboxes text-accent">
                     {/* todo: needs a shimer effect IMPORTANT */}
@@ -520,36 +602,13 @@ export default function Chat() {
                                     handleSelectChat={handleSelectChat}
                                     lastMessageInChatBox={lastMessageInChatBox}
                                     whoSentLastMessage={whoSentLastMessage}
+                                    userInfo={userInfo}
                                 />
                             );
                         })
                     )}
-
-                    {/* todo: whole component needs a refactor IMPORTANT*/}
-                    {/* todo : remove this piece of code */}
-                    {/* <div className="chat-inbox">
-                        <img
-                            className="chat-profile"
-                            src="https://i.pravatar.cc/300"
-                            alt="profile image"
-                        />
-                        <div className="chat-info">
-                            <p className="name">Santosh kumar</p>
-                            <p className="last-message">
-                                Happy makar sankaranti
-                                kjlkdajfjdlkajflkdajflkjfdsalfjkdfalkd
-                            </p>
-                        </div>
-                        <div className="chat-date">
-                            <p className="chat-data text-accent/80 ">
-                                1/1/1970
-                            </p>
-                            <p className="number-of-messages bg-secondary-400">
-                                9
-                            </p>
-                        </div>
-                    </div> */}
                 </div>
+                {/* todo: make this a component of it's own */}
                 {/* group section */}
                 <div
                     className="group-creation bg-primary-bg"
@@ -559,16 +618,22 @@ export default function Chat() {
                             : {}
                     }
                 >
-                    <p onClick={handleGroupCreation}>
+                    <p onClick={handleGroupCreation} className="mb-4">
                         <CiCirclePlus />
                     </p>
                     {/* search globaly throught the database */}
-                    <div className="select-box">
-                        {groupCreation.length >= 1 &&
+                    <div className="select-box px-4">
+                        {groupCreation?.length >= 1 &&
                             groupCreation?.map((selectedContact, index) => {
                                 // todo: the box you have selected, click on these again to remove them from the contact.
                                 return (
-                                    <div key={index}>
+                                    <div
+                                        key={index}
+                                        className="bg-secondary-400 px-3 flex justify-center content-center font-semibold"
+                                        onClick={() => {
+                                            handleRemoveGroup(selectedContact);
+                                        }}
+                                    >
                                         {selectedContact?.firstName}
                                     </div>
                                 );
@@ -595,12 +660,15 @@ export default function Chat() {
                     {/* todo: create the modal for group creation */}
                     {/* <CreateGroupModal open={groupCreationModalControl} /> */}
                     {/* search or select through just your contacts */}
-                    <div>
+                    <div className="mt-2 flex gap-2 flex-col px-4 ">
+                        List of all the contacts you have
                         {chatBox?.map((contact, index) => {
-                            return (
+                            return contact?.groupName ? (
+                                ""
+                            ) : (
                                 <div
                                     key={index}
-                                    className="contact-select"
+                                    className="contact-select bg-secondary-400 rounded-lg px-2 py-4"
                                     onClick={() => {
                                         handleGroupParticipants(contact, index);
                                     }}

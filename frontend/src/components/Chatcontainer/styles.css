@@ -83,6 +83,11 @@
         position: relative;
     }
 
+    .name-message-top {
+        margin-bottom: 2px;
+        text-decoration: underline wavy hsl(330, 60%, 25%);
+    }
+
     /* todo make these before and after work
     else implement, the way google messages
     rcs has. 
@@ -200,6 +205,11 @@
 .photo-video {
     display: none;
 }
+
+
+
+
+
 @media (min-width: 850px) {
     .sidebar {
         /* todo: fixed the borded on the right side */

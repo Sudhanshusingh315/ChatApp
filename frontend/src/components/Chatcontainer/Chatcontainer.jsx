@@ -28,6 +28,8 @@ export const Chatcontainer = forwardRef(
         },
         imageRef // <-- Correctly placed as the second argument
     ) => {
+        console.log("message", messages);
+
         return (
             <div
                 className="chat-container"
@@ -89,8 +91,13 @@ export const Chatcontainer = forwardRef(
                                                     : "reciever bg-[#1E1D2B]"
                                             }
                                         >
-                                            {/* call the renderMessage function here */}
-                                            {/* {message} */}
+                                            {selectedChat?._id !==
+                                                recipientId && (
+                                                <p className="name-message-top">
+                                                    {selectedChat?.firstName}{" "}
+                                                    {selectedChat?.lastName}
+                                                </p>
+                                            )}
                                             {renderMessage(
                                                 messageType,
                                                 message,

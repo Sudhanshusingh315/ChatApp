@@ -6,6 +6,7 @@ export const ChatBox = ({
     selectedChat,
     handleSelectChat,
     whoSentLastMessage,
+    userInfo,
 }) => {
     return (
         <div
@@ -40,7 +41,9 @@ export const ChatBox = ({
                     }
                 >
                     {info?.firstName && info?.lastName
-                        ? `${info?.firstName} ${info?.lastName}`
+                        ? `${info?.firstName} ${info?.lastName} ${
+                              info?._id === userInfo?.userId ? "(YOU)" : ""
+                          } `
                         : `${info?.groupName}`}
                 </p>
                 <p className="last-message">

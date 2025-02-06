@@ -5,10 +5,11 @@ export default function ChatcontainerSkeleton() {
             {NEW_ARRAY.map((_, index) => {
                 return (
                     <div
+                        key={index}
                         className={
                             index % 2
                                 ? "w-1/2 h-16 rounded-lg bg-secondary-400 self-end animate-pulse"
-                                : "w-1/2 h-16 bg-secondary-300 rounded-lg animate-pulse" 
+                                : "w-1/2 h-16 bg-secondary-300 rounded-lg animate-pulse"
                         }
                     ></div>
                 );

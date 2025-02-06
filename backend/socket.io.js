@@ -1,7 +1,11 @@
 import { Server } from "socket.io";
 import express from "express";
 import http from "http";
-import { lastActive, saveMessagesWithSocketIo } from "./controllers/messagesController.js";
+import {
+    lastActive,
+    saveMessagesWithSocketIo,
+} from "./controllers/messagesController.js";
+import { AddToMyContacts } from "./controllers/contactController.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -29,7 +33,7 @@ io.on("connection", (socket) => {
 
     // listening for messages;
     // one-on-one chat
-    socket.on("sendMessage", (emittedInfo) => {
+    socket.on("sendMessage", async (emittedInfo) => {
         console.log("emittedInfo", emittedInfo);
 
         const {
@@ -41,6 +45,16 @@ io.on("connection", (socket) => {
             updatedAt,
             chatType,
         } = emittedInfo;
+
+        /*
+        1) does the recipient, is in my contacts? 
+            if not, add them to my contact. 
+            don't do anything otherwise.
+        */
+
+        const contactUpdate = await AddToMyContacts(senderId, recipientId);
+        console.log("contacts Has been updated", contactUpdate);
+        
 
         /*
             //save the message to the db regardless if of the recipient online or not.
@@ -79,23 +93,22 @@ io.on("connection", (socket) => {
         //     console.log(`socket id ${socket?.id} joined the room i.e ${roomId}`);
     });
     socket.on("sendGroupMessages", (emittedInfo) => {
-        const {roomId} = emittedInfo;
+        const { roomId } = emittedInfo;
         console.log("emittedInfo is ", emittedInfo);
         io.to(roomId).emit("recieveMessages", emittedInfo);
         const value = saveMessagesWithSocketIo(emittedInfo);
         console.log("save message", value);
     });
-    socket.on("disconnect",  async()=> {
+    socket.on("disconnect", async () => {
         // update last seen
         delete userSocketMap[userId];
         const lastActiveObj = {
             userId,
-            lastActive: new Date().getTime()
-        }
-        await lastActive(lastActiveObj);        
-        
-        
-        io.emit("offline",Object.keys(userSocketMap));
+            lastActive: new Date().getTime(),
+        };
+        await lastActive(lastActiveObj);
+
+        io.emit("offline", Object.keys(userSocketMap));
     });
 });
 

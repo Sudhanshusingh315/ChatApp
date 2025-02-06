@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 // tood: add validatoin to all the apis
 
 export const getAllMessages = async (req, res) => {
+    console.log("getAllMessages being called");
     try {
         const { senderId, recipientId } = req.params;
         if (!senderId || !recipientId) {

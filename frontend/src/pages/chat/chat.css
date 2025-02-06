@@ -25,6 +25,7 @@ img {
     grid-template-columns: repeat(12, 1fr);
     background-color: var(--background-color);
     margin-inline: auto;
+    
 }
 
 .sidebar {
@@ -33,6 +34,7 @@ img {
     grid-column-end: 7;
     border-right: 1px solid var(--border-list);
     position: relative;
+    overflow-y: scroll;
 }
 
 .chat-action {
@@ -403,20 +405,16 @@ img {
     div {
         color: white;
         display: grid;
-        padding: 1rem;
         gap: 0.5rem;
-    }
-    .contact-select {
-        background-color: rebeccapurple;
     }
     .select-box {
         display: flex;
         flex-wrap: wrap;
-        border: 2px solid red;
         gap: 1rem;
         div {
-            background-color: #3b1e54;
             border-radius: 100vh;
+            color: hsl(330, 60%, 30%);
+            
         }
         input {
             background-color: #3b1e54;
