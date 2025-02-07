@@ -33,7 +33,7 @@ export const login = async (req, res) => {
     // todo: handle the validation of these parameters.
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email }).populate('groups');
+        const user = await User.findOne({ email }).populate("groups");
         // todo: check if password is correct with bcrypt
         if (user) {
             const token = generateToken({ email });
@@ -46,7 +46,8 @@ export const login = async (req, res) => {
                 profileImage: user?.profileImage,
                 firstName: user?.firstName,
                 lastName: user?.lastName,
-                groups:user?.groups
+                groups: user?.groups,
+                lastSeen: user?.lastSeen,
             });
         } else {
             return res.status(401).json({

@@ -98,11 +98,15 @@ export default function Chat() {
                 // show up the chat box, when an unknown users sends you a message.
                 if (emittedInfo?.senderId) {
                     setChatBox((prev) => {
-                        const foundContactId = prev?.find(
-                            (element) => element?._id === emittedInfo?.senderId
-                        );
+                        const foundContactId = prev?.find((element) => {
+                            return (
+                                element?._id === emittedInfo?.senderId ||
+                                element?.userId === emittedInfo?.senderId
+                            );
+                        });
                         if (foundContactId) {
                             console.log("i have found the id");
+                            console.log(foundContactId);
                             return prev;
                         }
                         return [...prev, emittedInfo];
@@ -125,6 +129,8 @@ export default function Chat() {
         };
     }, [socket]);
     // todo: put the get contact somewhere else.
+    console.log("messages", messages);
+
     useEffect(() => {
         setIsChatBoxLoaded(true);
         (async function () {
@@ -168,12 +174,13 @@ export default function Chat() {
             })();
         }
     }, [debouncedSearch]);
-console.log("chatBox",chatBox);
+    console.log("chatBox", chatBox);
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
         // e.stopPropagation();
         setSelectedChat(info);
+        console.log("info", info);
         const chatType = info?.chatType;
 
         let initMessages = {};
@@ -184,7 +191,7 @@ console.log("chatBox",chatBox);
                     setMessages([]);
                     initMessages = {
                         senderId: userInfo?.userId,
-                        recipientId: info?._id|| info?.recipientId,
+                        recipientId: info?._id || info?.senderId,
                         token: userInfo?.token,
                     };
                     await dispatch(getInitMessages(initMessages));
@@ -333,7 +340,7 @@ console.log("chatBox",chatBox);
         uploadFileToFireBase(storageRef, file);
         handleOpenImageWithTextModal();
     };
-
+    console.log("selectedChat", selectedChat);
     const renderMessage = (messageType, message, imageWithText) => {
         switch (messageType) {
             case messageTypes.TEXT:
@@ -518,7 +525,7 @@ console.log("chatBox",chatBox);
                 return [...prev, newContact];
             });
 
-            setSelectedChat(newContact);
+            // setSelectedChat(newContact);
             handleSelectChat(e, newContact);
             setGlobalSearchResults([]);
             setSearchContactGlobal("");
@@ -559,6 +566,7 @@ console.log("chatBox",chatBox);
                             {globalSearchResults?.map((contact, index) => {
                                 return (
                                     <p
+                                        key={index}
                                         className="rounded-md px-2 py-3 bg-secondary-300 text-primary-bg font-semibold"
                                         onClick={(e) => {
                                             messageThisConatct(e, contact);

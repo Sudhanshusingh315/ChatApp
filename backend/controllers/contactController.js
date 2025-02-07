@@ -55,32 +55,33 @@ export const getAllContacts = async (req, res) => {
 
 export const AddToMyContacts = async (userId, contactId) => {
     try {
-        console.log(`userid ${userId} contactId ${contactId}`);
-        const recipientId = new mongoose.Types.ObjectId(contactId);
-        const senderId = new mongoose.Types.ObjectId(userId);
-
-        const updatedConatct = await User.updateMany(
-            { _id: { $in: [senderId, recipientId] } },
-            [
+        if (userId && contactId) {
+            const userIds = [
                 {
-                    $set: {
-                        contacts: {
-                            $cond: {
-                                if: { $eq: ["$_id", senderId] },
-                                then: {
-                                    $addToSet: recipientId,
-                                },
-                                else: {
-                                    $addToSet: senderId,
-                                },
-                            },
-                        },
-                    },
+                    id: new mongoose.Types.ObjectId(userId),
+                    contact: new mongoose.Types.ObjectId(contactId),
                 },
-            ],
-            { new: true }
-        );
-        return updatedConatct;
+                {
+                    id: new mongoose.Types.ObjectId(contactId),
+                    contact: new mongoose.Types.ObjectId(userId),
+                },
+            ];
+
+            // order matters in the for await, it will be sequential.
+            const results = [];
+
+            for await (let { id, contact } of userIds) {
+                const updateContact = await User.updateOne(
+                    { _id: id },
+                    {
+                        $addToSet: { contacts: contact },
+                    },
+                    { new: true }
+                );
+                results.push(updateContact);
+            }
+            return results;
+        }
     } catch (error) {
         console.log(error);
     }

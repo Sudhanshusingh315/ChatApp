@@ -53,8 +53,6 @@ io.on("connection", (socket) => {
         */
 
         const contactUpdate = await AddToMyContacts(senderId, recipientId);
-        console.log("contacts Has been updated", contactUpdate);
-        
 
         /*
             //save the message to the db regardless if of the recipient online or not.
@@ -72,9 +70,8 @@ io.on("connection", (socket) => {
         const id = getSocketId(recipientId);
         if (id) {
             io?.to(id)?.emit("recieveMessages", emittedInfo);
-
-            // if the user is online means the socket is emitting
         }
+
         saveMessagesWithSocketIo(emittedInfo);
     });
 

@@ -8,6 +8,7 @@ export const getInitMessages = createAsyncThunk(
     "messages/getInitMessages",
     async (data, { rejectWithValue }) => {
         try {
+            console.log("data for get message between two users",data);
             const response = await getInitMessagesThunk(data);
             console.log("respnse data", response?.data);
             return response?.data;

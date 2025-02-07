@@ -35,7 +35,7 @@ export const ChatBox = ({
                     status={
                         info?.groupName
                             ? ""
-                            : isOnline(info?._id)
+                            : isOnline(info?._id || info?.userId)
                             ? "online"
                             : "offline"
                     }
