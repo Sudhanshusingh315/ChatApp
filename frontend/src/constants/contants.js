@@ -9,6 +9,13 @@ export const messageTypes = {
     IMAGEWITHTEXT :"imageWithText",
     PDFWITHTEXT: "pdfWithText",
     PDF:"pdf",
-    IMAGE:"image"
+    IMAGE:"image",
+    CONTACT:"contactAsAMessage"
 
+}
+
+
+export const fileFormats ={
+    PDF:"pdf",
+    IMAGE:"image"
 }

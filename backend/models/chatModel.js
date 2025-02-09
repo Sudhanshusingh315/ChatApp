@@ -15,10 +15,18 @@ const chatSchema = new Schema(
         messageType: {
             type: String,
             // todo: add support for pdf,images,voice,sticker
-            enum: ["text", "imageWithText"],
+            enum: ["text", "imageWithText", "pdfWithText", "contactAsAMessage"],
             default: "text",
         },
         imageWithText: {
+            type: Array,
+            default: undefined,
+        },
+        contactAsAMessage: {
+            type: Array,
+            default: undefined,
+        },
+        pdfWithText: {
             type: Array,
             default: undefined,
         },

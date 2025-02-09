@@ -3,6 +3,7 @@ import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
 import { CiChat1 } from "react-icons/ci";
 import { CiCirclePlus } from "react-icons/ci";
+import { BsFillChatTextFill } from "react-icons/bs";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,7 +14,7 @@ import {
     getInitMessagesGroup,
 } from "../../features/messages/messageSlice";
 import { createGroup } from "../../api/chat.api";
-import { chatTypes, messageTypes } from "../../constants/contants";
+import { chatTypes, fileFormats, messageTypes } from "../../constants/contants";
 import { storage } from "../../utils/firebase/firebase";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { ChatBox } from "../../components/Chatbox/Chatbox";
@@ -39,6 +40,7 @@ export default function Chat() {
         useState(false);
     // todo multiple files later
     const [fileImages, setFileImage] = useState("");
+    const [pdfFile, setPdfFile] = useState("");
     const [groupName, setGroupName] = useState("");
     const [openPopUp, setOpenPopUp] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
@@ -50,6 +52,7 @@ export default function Chat() {
     const debouncedSearch = useDebounce(searchContactGlobal);
     const dispatch = useDispatch();
     const imageRef = useRef(null);
+    const pdfRef = useRef(null);
     // socket init
     console.log("online users", onlineUsers);
     useEffect(() => {
@@ -225,10 +228,18 @@ export default function Chat() {
         if (!message) return;
 
         // this will only run for images.
-        let messageType, imageWithTextdata;
+        let messageType, imageWithTextdata, pdfWithTextdata, contactAsAMessage;
         if (message?.image) {
             messageType = messageTypes.IMAGEWITHTEXT;
             imageWithTextdata = message;
+            message = null;
+        } else if (message?.pdf) {
+            messageType = messageTypes.PDFWITHTEXT;
+            pdfWithTextdata = message?.pdf;
+            message = null;
+        } else if (message?.contact) {
+            messageType = messageTypes.CONTACT;
+            contactAsAMessage = message?.contact;
             message = null;
         }
         // decide on the basics of chat application.
@@ -244,6 +255,10 @@ export default function Chat() {
                     ...(imageWithTextdata && {
                         imageWithText: imageWithTextdata,
                     }),
+                    ...(pdfWithTextdata && { pdfWithText: pdfWithTextdata }),
+                    ...(contactAsAMessage && {
+                        contactAsAMessage: contactAsAMessage,
+                    }),
                     senderId: userInfo?.userId,
                     recipientId: selectedChat?._id,
                     createdAt: new Date().getTime(),
@@ -251,7 +266,8 @@ export default function Chat() {
                     chatType: chatTypes.OneOnOne,
                     ...userInfo,
                 };
-                console.log("emitInfo when image included", emitInfo);
+                console.log("emitInfo includs", emitInfo);
+
                 socket?.emit("sendMessage", emitInfo);
 
                 setMessages((prev) => {
@@ -316,6 +332,7 @@ export default function Chat() {
     const handleCloseImageWithTextModal = () => {
         setOpenImageWithTextModal(false);
         setFileImage("");
+        setPdfFile("");
     };
 
     const handleOpenImageWithTextModal = () => {
@@ -329,6 +346,12 @@ export default function Chat() {
             imageRef.current.click();
         }
     };
+    const handleClickPdfFiles = (e) => {
+        e.stopPropagation();
+        if (pdfRef?.current) {
+            pdfRef.current.click();
+        }
+    };
     const handleFileChange = (e) => {
         // e.stopPropagation();
         if (!e.target?.files) return;
@@ -337,19 +360,71 @@ export default function Chat() {
         const storageRef = ref(storage, `images/${file.name}`);
         console.log("storage ref is ", storageRef);
 
-        uploadFileToFireBase(storageRef, file);
+        uploadFileToFireBase(storageRef, file, fileFormats.IMAGE);
+        handleOpenImageWithTextModal();
+    };
+    const handleFileChangePdf = (e) => {
+        if (!e.target?.files) return;
+        const file = e.target?.files[0];
+        const storageRef = ref(storage, `pdfs/${file.name}`);
+        console.log("storage ref is ", storageRef);
+
+        uploadFileToFireBase(storageRef, file, fileFormats.PDF);
         handleOpenImageWithTextModal();
     };
     console.log("selectedChat", selectedChat);
-    const renderMessage = (messageType, message, imageWithText) => {
+
+    const renderMessage = (
+        messageType,
+        message,
+        imageWithText,
+        pdfWithText,
+        contactAsAMessage
+    ) => {
         switch (messageType) {
+            case messageTypes.CONTACT:
+                console.log(`contact as a message ${contactAsAMessage}`);
+                return (
+                    <>
+                        <div className="contact-box">
+                            <div className="sent-contact">
+                                <img
+                                    src={
+                                        contactAsAMessage[0]?.profileImage ||
+                                        contactAsAMessage?.profileImage
+                                    }
+                                    alt="contact"
+                                />
+                                <p className="font-semibold ">
+                                    {Array.isArray(contactAsAMessage)
+                                        ? `${contactAsAMessage[0]?.firstName} ${contactAsAMessage[0]?.lastName}`
+                                        : ""}
+                                </p>
+                            </div>
+                            <div className="contact-action-buttons">
+                                <button
+                                    onClick={(e) => {
+                                        const contact = Array.isArray(
+                                            contactAsAMessage
+                                        )
+                                            ? contactAsAMessage[0]
+                                            : contactAsAMessage;
+                                        messageThisConatct(e, contact);
+                                    }}
+                                >
+                                    Message
+                                </button>
+                                <button>Add to Group</button>
+                            </div>
+                        </div>
+                    </>
+                );
+                break;
             case messageTypes.TEXT:
                 return message;
                 break;
-
             case messageTypes.IMAGE:
                 break;
-
             case messageTypes.PDF:
                 break;
             case messageTypes.IMAGEWITHTEXT:
@@ -357,17 +432,31 @@ export default function Chat() {
                     <>
                         <img
                             className="message-image"
-                            src={imageWithText[0]?.image}
+                            src={
+                                imageWithText[0]?.image || imageWithText?.image
+                            }
                             alt=""
                         />
                         <p className="text-image">{imageWithText[0]?.text}</p>
                     </>
                 );
                 break;
-
             case messageTypes.PDFWITHTEXT:
+                return (
+                    <>
+                        <img
+                            className="message-image"
+                            src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg"
+                            alt=""
+                        />
+                        <p className="text-image">
+                            {pdfWithText[0]?.text || pdfWithText?.text}
+                        </p>
+                    </>
+                );
                 break;
-
+            case messageTypes.CONTACT:
+                break;
             default:
                 return "Message more correctly setup";
                 break;
@@ -378,7 +467,7 @@ export default function Chat() {
         return onlineUsers?.includes(id);
     };
 
-    const uploadFileToFireBase = (storageRef, file) => {
+    const uploadFileToFireBase = (storageRef, file, fileFormat) => {
         console.log("uploading file to fireBase");
         const uploadTask = uploadBytesResumable(storageRef, file);
         uploadTask.on(
@@ -418,14 +507,26 @@ export default function Chat() {
             },
             async () => {
                 // Upload completed successfully, now we can get the download URL
-                const fileImageFireBase = await getDownloadURL(
+                const fileFromFireBase = await getDownloadURL(
                     uploadTask.snapshot.ref
                 );
-                setFileImage(fileImageFireBase);
+                switch (fileFormat) {
+                    case fileFormats.IMAGE:
+                        console.log("insdie image file");
+                        setFileImage(fileFromFireBase);
+                        break;
+                    case fileFormats.PDF:
+                        console.log("inside pdf file");
+                        console.log("pdf file image", fileFromFireBase);
+                        setPdfFile(fileFromFireBase);
+                        break;
+                    default:
+                        break;
+                }
             }
         );
     };
-
+    console.log(`pdf file from firebase ${pdfFile}`);
     const getLastSeenMessage = (lastSeenTimestamp) => {
         const lastSeen = new Date(lastSeenTimestamp);
         const now = new Date();
@@ -483,9 +584,12 @@ export default function Chat() {
                 switch (messageType) {
                     case messageTypes.TEXT:
                         return message;
-                        break;
                     case messageTypes.IMAGEWITHTEXT:
                         return "Image with text";
+                    case messageTypes.PDFWITHTEXT:
+                        return "PDF with text";
+                    case messageTypes.CONTACT:
+                        return <>&#xbb; Shared a contact</>;
                     default:
                         break;
                 }
@@ -526,6 +630,10 @@ export default function Chat() {
             });
 
             // setSelectedChat(newContact);
+            handleSelectChat(e, newContact);
+            setGlobalSearchResults([]);
+            setSearchContactGlobal("");
+        } else {
             handleSelectChat(e, newContact);
             setGlobalSearchResults([]);
             setSearchContactGlobal("");
@@ -704,13 +812,17 @@ export default function Chat() {
                     setMessageBox={setMessageBox}
                     sendMessage={sendMessage}
                     fileImages={fileImages}
+                    pdfFile={pdfFile}
                     handleCloseImageWithTextModal={
                         handleCloseImageWithTextModal
                     }
-                    ref={imageRef}
+                    ref={{ imageRef, pdfRef }}
                     openImageWithTextModal={openImageWithTextModal}
                     openPopUp={openPopUp}
                     isChatLoading={isChatLoading}
+                    handleFileChangePdf={handleFileChangePdf}
+                    handleClickPdfFiles={handleClickPdfFiles}
+                    chatBox={chatBox}
                 />
             ) : (
                 <div className="text-accent">

@@ -7,6 +7,7 @@ import "./styles.css";
 import ChatcontainerSkeleton from "../Skeletons/ChatcontainerSkeletons/ChatcontainerSkeleton";
 import EmojiPicker from "emoji-picker-react";
 import { FaFaceSmile, FaRegFaceSmile } from "react-icons/fa6";
+import Contact from "../Modals/ContactModal/Contact";
 export const Chatcontainer = forwardRef(
     (
         {
@@ -27,11 +28,17 @@ export const Chatcontainer = forwardRef(
             openImageWithTextModal,
             openPopUp,
             isChatLoading,
+            handleClickPdfFiles,
+            handleFileChangePdf,
+            pdfFile,
+            chatBox,
         },
-        imageRef
+        ref
     ) => {
+        const { imageRef, pdfRef } = ref;
         const messageInputRef = useRef(null);
         const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
+        const [showContactModal, setShowContactModal] = useState(false);
         const handleEmojiPicker = (e) => {
             e.stopPropagation();
             setOpenEmojiPicker((prev) => !prev);
@@ -49,6 +56,13 @@ export const Chatcontainer = forwardRef(
             if (key === "Enter") {
                 sendMessage(messageBox);
             }
+        };
+        const handleShowModal = () => {
+            setShowContactModal(!showContactModal);
+        };
+
+        const handleCloseModal = () => {
+            setShowContactModal(false);
         };
         return (
             <div
@@ -99,6 +113,8 @@ export const Chatcontainer = forwardRef(
                                         message,
                                         messageType,
                                         imageWithText,
+                                        pdfWithText,
+                                        contactAsAMessage,
                                     },
                                     index
                                 ) => {
@@ -122,7 +138,9 @@ export const Chatcontainer = forwardRef(
                                             {renderMessage(
                                                 messageType,
                                                 message,
-                                                imageWithText
+                                                imageWithText,
+                                                pdfWithText,
+                                                contactAsAMessage
                                             )}
                                         </div>
                                     );
@@ -137,10 +155,18 @@ export const Chatcontainer = forwardRef(
                     <input
                         ref={imageRef}
                         type="file"
+                        data-photo="photo-video"
                         className="photo-video"
-                        multiple
                         accept="image/*"
                         onChange={handleFileChange}
+                    />
+                    <input
+                        ref={pdfRef}
+                        type="file"
+                        data-photo="pdfs"
+                        className="hidden"
+                        accept="application/pdf"
+                        onChange={handleFileChangePdf}
                     />
                     <button
                         className="attachments"
@@ -163,10 +189,20 @@ export const Chatcontainer = forwardRef(
                                 Photos and Videos
                             </p>
 
-                            <p className="li-pdf" mediatype="document">
+                            <p
+                                className="li-pdf"
+                                mediatype="document"
+                                onClick={(e) => {
+                                    handleClickPdfFiles(e);
+                                }}
+                            >
                                 Documents
                             </p>
-                            <p className="li-contact" mediatype="contact">
+                            <p
+                                className="li-contact"
+                                mediatype="contact"
+                                onClick={handleShowModal}
+                            >
                                 Contact
                             </p>
                         </div>
@@ -210,9 +246,21 @@ export const Chatcontainer = forwardRef(
                 <ImageWithText
                     open={openImageWithTextModal}
                     image={fileImages}
+                    pdf={pdfFile}
                     onClose={handleCloseImageWithTextModal}
                     sendMessage={sendMessage}
                 />
+
+                {showContactModal && (
+                    <Contact
+                        onModalClose={handleCloseModal}
+                        chatBox={chatBox}
+                        sendMessage={sendMessage}
+                    />
+                )}
+
+                
+
             </div>
         );
     }

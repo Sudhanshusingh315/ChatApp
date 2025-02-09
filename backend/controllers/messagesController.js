@@ -102,7 +102,9 @@ export const saveMessagesWithSocketIo = async (messageData) => {
             groupParticipantIds,
             chatType,
             roomId,
-            imageWithText
+            imageWithText,
+            pdfWithText,
+            contactAsAMessage,
         } = messageData;
 
         let saveMessage;
@@ -115,10 +117,12 @@ export const saveMessagesWithSocketIo = async (messageData) => {
                     recipientId:
                         Types.ObjectId.createFromHexString(recipientId),
                     messageType,
-                    ...(message &&{message}),
+                    ...(message && { message }),
                     ...(createdAt && { createdAt }),
                     ...(updatedAt && { updatedAt }),
-                    ...(imageWithText && {imageWithText})
+                    ...(imageWithText && { imageWithText }),
+                    ...(pdfWithText && { pdfWithText }),
+                    ...(contactAsAMessage && { contactAsAMessage }),
                 });
 
                 break;
@@ -133,6 +137,8 @@ export const saveMessagesWithSocketIo = async (messageData) => {
                         groupRecipientIds: groupParticipantIds,
                     }),
                     ...(roomId && { roomId }),
+                    ...(pdfWithText && { pdfWithText }),
+                    ...(imageWithText && { imageWithText }),
                 });
 
             default:
@@ -177,25 +183,24 @@ export const getAllGroupMessages = async (req, res) => {
 };
 
 export const lastActive = async ({ userId, lastActive }) => {
-    try{
+    try {
+        if (userId) {
+            console.log("userId of the disconnected is", userId);
+            const id = new mongoose.Types.ObjectId(userId);
+            console.log("new Id is", id);
+            console.log(`blob ${id} lastactive ${lastActive}`);
+            const user = await User.updateOne(
+                {
+                    _id: id,
+                },
+                {
+                    lastSeen: lastActive,
+                }
+            );
 
-    if (userId) {
-        console.log("userId of the disconnected is",userId);
-        const id = new mongoose.Types.ObjectId(userId);
-        console.log("new Id is",id);
-        console.log(`blob ${id} lastactive ${lastActive}`);
-        const user = await User.updateOne(
-            {
-                _id: id,
-            },
-            {
-                lastSeen:lastActive,
-            }
-        );
-
-        console.log(user);
-    }
-    }catch(err){
-        console.log("err",err);
+            console.log(user);
+        }
+    } catch (err) {
+        console.log("err", err);
     }
 };

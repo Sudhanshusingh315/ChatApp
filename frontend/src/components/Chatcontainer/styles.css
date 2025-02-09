@@ -207,6 +207,61 @@
     display: none;
 }
 
+
+.sent-contact{
+    display:flex;
+    align-items: center;
+    justify-content: start;
+    gap:.70em;
+    padding: .875em .25em;
+    border-bottom: 1px solid #333;
+
+    img{
+        width: 50px;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+}
+
+.contact-action-buttons{
+    display: flex;
+    margin-block-start: .75em;
+
+    button:hover{
+        background-color: #3b1e54;
+        border-radius: .50em;
+    }
+}
+
+.contact-action-buttons >*{
+    padding:.25em .875em;
+    flex:1;
+    max-width: fit-content;
+    cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @media (min-width: 850px) {
     .sidebar {
         /* todo: fixed the borded on the right side */

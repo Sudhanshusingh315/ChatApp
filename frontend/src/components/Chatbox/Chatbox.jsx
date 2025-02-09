@@ -11,7 +11,7 @@ export const ChatBox = ({
     return (
         <div
             key={info?._id}
-            className="chat-inbox "
+            className="chat-inbox"
             onClick={(e) => {
                 if (info?._id !== selectedChat?._id || !selectedChat) {
                     console.log(
