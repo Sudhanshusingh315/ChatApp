@@ -8,6 +8,7 @@ import ChatcontainerSkeleton from "../Skeletons/ChatcontainerSkeletons/Chatconta
 import EmojiPicker from "emoji-picker-react";
 import { FaFaceSmile, FaRegFaceSmile } from "react-icons/fa6";
 import Contact from "../Modals/ContactModal/Contact";
+import ViewMedia from "../Modals/ViewMedia/ViewMedia";
 export const Chatcontainer = forwardRef(
     (
         {
@@ -32,6 +33,9 @@ export const Chatcontainer = forwardRef(
             handleFileChangePdf,
             pdfFile,
             chatBox,
+            handleCloseViewMediaControl,
+            showViewMedia,
+            showViewMediaContent,
         },
         ref
     ) => {
@@ -259,8 +263,11 @@ export const Chatcontainer = forwardRef(
                     />
                 )}
 
-                
-
+                <ViewMedia
+                    open={showViewMedia}
+                    media={showViewMediaContent}
+                    onClose={handleCloseViewMediaControl}
+                />
             </div>
         );
     }

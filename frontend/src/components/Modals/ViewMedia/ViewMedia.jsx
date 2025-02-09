@@ -1,24 +1,48 @@
 import { FaDownload } from "react-icons/fa";
-
-export default function ViewMedia({ open, onClose }) {
+import "./styles.css";
+import axios from "axios";
+export default function ViewMedia({ open, onClose, media }) {
+    console.log("media", media);
+    const downloadMedia = async (e, media) => {
+        e.stopPropagation();
+        console.log("eellloo");
+        const link = document.createElement("a");
+        const fileName = media.split("/").pop().split("?")[0];
+  link.href = media;
+  link.target = "_blank"; // Optional: File ko naye tab me open karega
+  link.download = fileName; // File ka naam set karne ke liye
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+    };
     return (
         open && (
-            <div className="view-media">
-                <div className="recipient-detaild">
-                    <img
-                        src="https://randomuser.me/api/portraits/women/2.jpg"
-                        alt="recipient-image"
-                    />
-                    <p>Sudhanshu singh</p>
-                    <p>
-                        <FaDownload />
-                    </p>
-                </div>
-                <div className="media container">
-                    <img
-                        src="https://images.unsplash.com/photo-1738447429433-69e3ecd0bdd0?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                        alt="shared-media"
-                    />
+            <div
+                className="view-media"
+                onClick={(e) => {
+                    e.stopPropagation;
+                    onClose();
+                }}
+            >
+                <div className="view-media-content">
+                    <div className="recipient-details bg-primary text-secondary-300">
+                        <img
+                            src="https://randomuser.me/api/portraits/women/2.jpg"
+                            alt="recipient-image"
+                        />
+                        <p className="recipient-name">Sudhanshu singh</p>
+                        <p
+                            className="download-media"
+                            onClick={(e) => {
+                                downloadMedia(e, media);
+                            }}
+                        >
+                            <FaDownload />
+                        </p>
+                    </div>
+                    <div className="media-container max-w-72 ">
+                        <img src={media} alt="shared-media" />{" "}
+                    </div>
                 </div>
             </div>
         )

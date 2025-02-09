@@ -50,6 +50,8 @@ export default function Chat() {
     const [searchContactGlobal, setSearchContactGlobal] = useState("");
     const [globalSearchResults, setGlobalSearchResults] = useState([]);
     const debouncedSearch = useDebounce(searchContactGlobal);
+    const [showViewMedia, setShowViewMedia] = useState(false);
+    const [showViewMediaContent,setShowViewMediaContent] = useState();
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     const pdfRef = useRef(null);
@@ -374,6 +376,14 @@ export default function Chat() {
     };
     console.log("selectedChat", selectedChat);
 
+    const handleOpenViewMediaControl = (content) => {
+        setShowViewMedia(true);
+        setShowViewMediaContent(content);
+    };
+    const handleCloseViewMediaControl = () => {
+        setShowViewMedia(false);
+    };
+
     const renderMessage = (
         messageType,
         message,
@@ -428,9 +438,14 @@ export default function Chat() {
             case messageTypes.PDF:
                 break;
             case messageTypes.IMAGEWITHTEXT:
+                const content = Array.isArray(imageWithText) ? imageWithText[0].image : imageWithText?.image; 
                 return (
                     <>
                         <img
+                            onClick={(e) => {
+                                e.stopPropagation;
+                                handleOpenViewMediaControl(content);
+                            }}
                             className="message-image"
                             src={
                                 imageWithText[0]?.image || imageWithText?.image
@@ -823,6 +838,9 @@ export default function Chat() {
                     handleFileChangePdf={handleFileChangePdf}
                     handleClickPdfFiles={handleClickPdfFiles}
                     chatBox={chatBox}
+                    handleCloseViewMediaControl={handleCloseViewMediaControl}
+                    showViewMedia={showViewMedia}
+                    showViewMediaContent={showViewMediaContent}
                 />
             ) : (
                 <div className="text-accent">

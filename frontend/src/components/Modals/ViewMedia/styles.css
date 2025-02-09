@@ -1,0 +1,59 @@
+.view-media{
+    background-color: rgba(0,0,0,.6);
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-content: center;
+}
+
+.recipient-details{
+    padding: 1em 3em;
+    display: flex;
+    gap:1rem;
+    align-items: center;
+    img{
+        width: 4.6rem;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+
+    }
+    .recipient-name{
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .download-media{
+        margin-left: auto;
+        font-size:2rem;
+        color:white ;
+    }
+    .download-media:is(:hover, :focus-visible){
+        background-color: pink;
+        border-radius: 50%;
+        color:#333;
+        cursor: pointer;
+    }
+}
+
+.media-container{
+    max-width: 100%;    
+    object-fit: cover;
+}
+.view-media-content{
+    max-width: 800px;
+    margin-inline: auto;
+    animation-name: showMedia;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
+
+}
+
+
+@keyframes showMedia {
+    from{
+        opacity: 0;
+        scale: 4;
+    }to{
+        scale:1 ;
+        opacity: 1;
+    }
+}
