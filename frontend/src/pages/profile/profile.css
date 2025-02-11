@@ -1,0 +1,53 @@
+*,
+*::after,
+*::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.profile-section {
+    display: grid;
+    gap: 0.875rem;
+    padding: 1em 3em;
+}
+
+.profile-section-image {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.image-itself {
+    /* max-width: 100%; */
+    width: 18rem;
+    aspect-ratio: 1/1;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
+    justify-self: center;
+}
+
+.dummy-profile {
+    width: 18rem;
+    aspect-ratio: 1/1;
+    background: linear-gradient(45deg, hsl(295, 72%, 45%), hsl(309, 62%, 33%));
+    border-radius: 50%;
+    justify-self: center;
+}
+
+.profile-section-details {
+    display: grid;
+    gap: 0.875em;
+}
+
+.profile-section-details > * {
+    padding: 1em 2em;
+    border-radius: 1.2rem;
+}
+
+.First-name {
+    font-size: 1.2rem;
+}
+
+.Last-name {
+    font-size: 1.2rem;
+}

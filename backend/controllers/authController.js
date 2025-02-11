@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { responseStatus } from "../constants.config.js";
 import { User } from "../models/userModel.js";
 import { generateToken } from "../utils/token.js";
@@ -61,6 +62,40 @@ export const login = async (req, res) => {
         return res.status(401).json({
             status: responseStatus.FAIL,
             error: err,
+        });
+    }
+};
+
+export const profileSetup = async (req, res) => {
+    console.log("hitting profile setup really well!");
+    let { userId, firstName, lastName, profileImage } = req.body;
+
+    // todo: validate this
+    userId = new mongoose.Types.ObjectId(userId);
+    try {
+        let user = await User.findByIdAndUpdate(
+            { _id: userId },
+            {
+                firstName: firstName,
+                lastName: lastName,
+                profileSetup: true,
+                profileImage: profileImage,
+            },
+            {
+                new: true,
+            }
+        );
+        console.log('user',user);
+        return res.status(201).json({
+            success: true,
+            update: user,
+        });
+    } catch (error) {
+        console.log("Errors", error);
+        return res.status(304).json({
+            success: false,
+            message: "something bad happened!!",
+            error: error.message,
         });
     }
 };

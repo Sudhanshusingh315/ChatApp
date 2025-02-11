@@ -20,7 +20,6 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (userInfo && socket) {
-            console.log("userInfo", userInfo);
             const roomsId = userInfo?.groups?.map((elment, index) => {
                 return elment?._id;
             });

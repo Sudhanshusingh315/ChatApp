@@ -1,6 +1,5 @@
 import { FaDownload } from "react-icons/fa";
 import "./styles.css";
-import axios from "axios";
 export default function ViewMedia({ open, onClose, media }) {
     console.log("media", media);
     const downloadMedia = async (e, media) => {
@@ -8,12 +7,12 @@ export default function ViewMedia({ open, onClose, media }) {
         console.log("eellloo");
         const link = document.createElement("a");
         const fileName = media.split("/").pop().split("?")[0];
-  link.href = media;
-  link.target = "_blank"; // Optional: File ko naye tab me open karega
-  link.download = fileName; // File ka naam set karne ke liye
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+        link.href = media;
+        link.target = "_blank";
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
     return (
         open && (

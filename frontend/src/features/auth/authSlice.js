@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { userLogin, userSignup } from "./authslice.api.js";
+import { userLogin, userSignup, userProfileSetup } from "./authslice.api.js";
 
 export const authLogin = createAsyncThunk(
     "auth/login",
@@ -18,6 +18,21 @@ export const authSignup = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await userSignup(data);
+            return response?.data;
+        } catch (err) {
+            // todo: handle the errors;
+            console.log("login failed", err);
+        }
+    }
+);
+
+export const authProfileSetup = createAsyncThunk(
+    "auth/profileSetup",
+    async (data, { rejectWithValue }) => {
+        try {
+            console.log("data has arrive", data);
+            const response = await userProfileSetup(data);
+            // return response?.data;
             return response?.data;
         } catch (err) {
             // todo: handle the errors;
@@ -47,7 +62,8 @@ const authSlice = createSlice({
         builder
 
             // login
-            .addCase(authLogin.fulfilled,  (state, action) => {
+
+            .addCase(authLogin.fulfilled, (state, action) => {
                 state.userInfo = action?.payload;
                 state.userToken = action?.payload?.token;
                 if (action?.payload) {
@@ -68,7 +84,26 @@ const authSlice = createSlice({
 
             .addCase(authSignup.fulfilled, (state, action) => {})
             .addCase(authSignup.pending, (state, action) => {})
-            .addCase(authSignup.rejected, (state, action) => {});
+            .addCase(authSignup.rejected, (state, action) => {})
+
+            // profileSetup
+
+            .addCase(authProfileSetup.fulfilled, (state, action) => {
+                console.log("action response", action?.payload);
+                const info = {
+                    ...action?.payload?.update,
+                    userId: action?.payload?.update?._id,
+                };
+                delete info?._id;
+                state.userInfo = info;
+                if (action?.payload) {
+                    localStorage.setItem(
+                        "userInfo",
+                        JSON.stringify(info)
+                    );
+                }
+            })
+            .addCase(authProfileSetup.pending, (state, action) => {});
     },
 });
 
