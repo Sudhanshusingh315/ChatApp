@@ -1,0 +1,45 @@
+.schedule-container {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.schedule-content {
+    background-color: var(--primary-color);
+    color: var(--accent-color);
+    padding: 1rem;
+    display: grid;
+    gap: 0.875rem;
+
+    .send-schedule {
+        font-size: 2rem;
+        margin-left: auto;
+        cursor: pointer;
+    }
+}
+
+.schedule-content > textarea {
+    width: 100%rem;
+    width: 30rem;
+    border: 1px solid black;
+    height: 5rem;
+    min-height: 8rem;
+    max-height: 9rem;
+    background-color: var(--secondary-color-500);
+    font-size: large;
+    padding: 0.875em;
+}
+
+.schedule-content > div {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 1rem;
+}
+
+.date-pick-icon {
+    font-size: 2rem;
+}

@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import express from "express";
 import http from "http";
 import {
+    deleteMessage,
     lastActive,
     saveMessagesWithSocketIo,
 } from "./controllers/messagesController.js";
@@ -75,6 +76,20 @@ io.on("connection", (socket) => {
         saveMessagesWithSocketIo(emittedInfo);
     });
 
+    // delete messages
+    socket.on("deleteMessage", async (data) => {
+        if (!data) return;
+        let { _id, recipientId,senderId } = data;
+
+        // make the api call for deleting the message,
+        // stream the updated list here.
+        const result = await deleteMessage(_id,recipientId,senderId);
+        const id = getSocketId(recipientId);
+        if (id) {
+            console.log("sent the data, user is online",result);
+            io?.to(id)?.emit("recieveDeleteMessages", result);
+        }
+    });
     // online users
 
     socket.on("joinRoom", (roomId) => {

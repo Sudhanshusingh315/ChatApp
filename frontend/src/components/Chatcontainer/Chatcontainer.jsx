@@ -12,6 +12,8 @@ import Contact from "../Modals/ContactModal/Contact";
 import ViewMedia from "../Modals/ViewMedia/ViewMedia";
 import { BsCheck2 } from "react-icons/bs";
 import { messageTypes } from "../../constants/contants";
+import ContextMenu from "../Modals/ContextMenu/ContextMenu";
+import ScheduleMessages from "../Modals/ScheduleMessages/ScheduleMessages";
 export const Chatcontainer = forwardRef(
     (
         {
@@ -39,13 +41,21 @@ export const Chatcontainer = forwardRef(
             handleCloseViewMediaControl,
             showViewMedia,
             showViewMediaContent,
+            setMessages,
         },
         ref
     ) => {
         const { imageRef, pdfRef } = ref;
         const messageInputRef = useRef(null);
         const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
+        useEffect(() => {
+            messageInputRef?.current.focus();
+        }, []);
         const [showContactModal, setShowContactModal] = useState(false);
+        const [showContextMenu, setShowContextMenu] = useState(false);
+        const [contextMenuMessageInfo, setContextMenuMessageInfo] = useState();
+        const [position, setPosition] = useState();
+        const [showScheduleMessage, setShowScheduledMessage] = useState(false);
         const handleEmojiPicker = (e) => {
             e.stopPropagation();
             setOpenEmojiPicker((prev) => !prev);
@@ -55,9 +65,6 @@ export const Chatcontainer = forwardRef(
             const { emoji } = Emojivalue;
             setMessageBox((prev) => prev + emoji);
         };
-        useEffect(() => {
-            messageInputRef?.current.focus();
-        }, []);
         const handleEnterSend = (e) => {
             const { key } = e;
             if (key === "Enter") {
@@ -70,6 +77,39 @@ export const Chatcontainer = forwardRef(
 
         const handleCloseModal = () => {
             setShowContactModal(false);
+        };
+        const handleContextMenu = (e, messageInfo) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const scrollableParent = document.querySelector(
+                ".chat-talking-section"
+            ); // Adjust this selector
+            const parentRect = scrollableParent.getBoundingClientRect();
+
+            setPosition({
+                left: e.clientX - parentRect.left + scrollableParent.scrollLeft,
+                top: e.clientY - parentRect.top + scrollableParent.scrollTop,
+            });
+
+            console.log("e", e);
+            let position = {
+                top: e.clientY,
+            };
+            if (messageInfo?.senderId !== userInfo?.userId) return;
+            setShowContextMenu(!showContextMenu);
+            setContextMenuMessageInfo(messageInfo);
+            setPosition(position);
+        };
+        const handleCloseContextMenu = (e) => {
+            e.stopPropagation();
+            setShowContextMenu(false);
+        };
+
+        const handleScheduleMessage = () => {
+            setShowScheduledMessage(true);
+        };
+        const handleCloseScheduleMessage = () => {
+            setShowScheduledMessage(false);
         };
         return (
             <div
@@ -111,10 +151,14 @@ export const Chatcontainer = forwardRef(
                     {isChatLoading ? (
                         <ChatcontainerSkeleton />
                     ) : (
-                        <div className="chat-talking-section">
+                        <div
+                            className="chat-talking-section"
+                            onClick={handleCloseContextMenu}
+                        >
                             {messages?.map(
                                 (
                                     {
+                                        _id,
                                         recipientId,
                                         senderId,
                                         message,
@@ -129,6 +173,13 @@ export const Chatcontainer = forwardRef(
                                     return (
                                         <div
                                             // todo: can we do a better index than this?
+                                            onContextMenu={(e) => {
+                                                handleContextMenu(e, {
+                                                    _id,
+                                                    recipientId,
+                                                    senderId,
+                                                });
+                                            }}
                                             key={index}
                                             className={
                                                 userInfo?.userId === senderId
@@ -148,7 +199,8 @@ export const Chatcontainer = forwardRef(
                                                 message,
                                                 imageWithText,
                                                 pdfWithText,
-                                                contactAsAMessage
+                                                contactAsAMessage,
+                                                isSeen
                                             )}
                                             {messageType ===
                                                 messageTypes.TEXT &&
@@ -166,6 +218,14 @@ export const Chatcontainer = forwardRef(
                                     );
                                 }
                             )}
+
+                            <ContextMenu
+                                open={showContextMenu}
+                                messageInfo={contextMenuMessageInfo}
+                                messages={messages}
+                                setMessages={setMessages}
+                                position={position}
+                            />
                         </div>
                     )}
                 </div>
@@ -218,12 +278,15 @@ export const Chatcontainer = forwardRef(
                             >
                                 Documents
                             </p>
+                            <p mediatype="contact" onClick={handleShowModal}>
+                                Contact
+                            </p>
                             <p
                                 className="li-contact"
-                                mediatype="contact"
-                                onClick={handleShowModal}
+                                mediatype="schedule"
+                                onClick={handleScheduleMessage}
                             >
-                                Contact
+                                Schedule Message
                             </p>
                         </div>
                     )}
@@ -283,6 +346,11 @@ export const Chatcontainer = forwardRef(
                     open={showViewMedia}
                     media={showViewMediaContent}
                     onClose={handleCloseViewMediaControl}
+                />
+
+                <ScheduleMessages
+                    open={showScheduleMessage}
+                    onClose={handleCloseScheduleMessage}
                 />
             </div>
         );

@@ -217,3 +217,15 @@ export const lastActive = async ({ userId, lastActive }) => {
         console.log("err", err);
     }
 };
+
+export const deleteMessage = async (chatId, senderId, recipientId) => {
+    chatId = new mongoose.Types.ObjectId(chatId);
+    let result;
+    await Chat.findByIdAndDelete(chatId);
+    result = await Chat.aggregate([
+        {
+            $match: updateMessagesOneOneOneFilter(senderId, recipientId),
+        },
+    ]);
+    return result;
+};

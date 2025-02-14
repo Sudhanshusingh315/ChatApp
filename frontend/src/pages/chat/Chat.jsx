@@ -3,7 +3,7 @@ import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
 import { CiChat1 } from "react-icons/ci";
 import { CiCirclePlus } from "react-icons/ci";
-import { BsCheck2, BsFillChatTextFill } from "react-icons/bs";
+import { BsCheck2, BsCheck2All, BsFillChatTextFill } from "react-icons/bs";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
 import { useDispatch, useSelector } from "react-redux";
@@ -180,6 +180,10 @@ export default function Chat() {
             socket.on("getOnlineUsers", (onlineUsers) => {
                 console.log("online users are", onlineUsers);
                 setOnlineUsers([...new Set(onlineUsers)]);
+            });
+            socket.on("recieveDeleteMessages", (messages) => {
+                console.log("delete messages array", messages);
+                setMessages(messages);
             });
         }
         return () => {
@@ -454,7 +458,8 @@ export default function Chat() {
         message,
         imageWithText,
         pdfWithText,
-        contactAsAMessage
+        contactAsAMessage,
+        isSeen
     ) => {
         switch (messageType) {
             case messageTypes.CONTACT:
@@ -524,7 +529,11 @@ export default function Chat() {
                                 {imageWithText[0]?.text}
                             </p>
                             <div className="self-end">
-                                <BsCheck2 />
+                                {isSeen ? (
+                                    <BsCheck2All color="blue" />
+                                ) : (
+                                    <BsCheck2 />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -903,6 +912,7 @@ export default function Chat() {
                     isOnline={isOnline}
                     getLastSeenMessage={getLastSeenMessage}
                     messages={messages}
+                    setMessages={setMessages}
                     userInfo={userInfo}
                     renderMessage={renderMessage}
                     handleFileChange={handleFileChange}

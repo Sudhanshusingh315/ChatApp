@@ -1,0 +1,26 @@
+.context-menu {
+    background-color: pink;
+    position: absolute;
+    z-index: 1;
+    display: grid;
+    gap: 0.25rem;
+    padding: 1em;
+    align-content: start;
+    background-color: var(--background-color);
+    outline: 2px solid var(--primary-color);
+    border-radius: 0.875em;
+    left: 400px;
+}
+
+.context-menu > * {
+    color: var(--accent-color);
+    padding: 0.625em 0.8125em;
+    background-color: var(--secondary-color-500);
+    font-size: 0.9375em;
+    border-radius: inherit;
+    cursor: pointer;
+}
+
+.context-menu > *:hover{
+    background-color: var(--secondary-color);
+}
