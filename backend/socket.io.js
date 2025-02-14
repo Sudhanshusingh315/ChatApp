@@ -47,7 +47,7 @@ io.on("connection", (socket) => {
         } = emittedInfo;
 
         /*
-        1) does the recipient, is in my contacts? 
+        1) does this recipient, is it in my contacts? 
             if not, add them to my contact. 
             don't do anything otherwise.
         */

@@ -7,19 +7,16 @@ export const ChatBox = ({
     handleSelectChat,
     whoSentLastMessage,
     userInfo,
+    showUnSeenNumberOfMessages,
 }) => {
     return (
         <div
             key={info?._id}
-            className="chat-inbox"
+            className="chat-inbox "
             onClick={(e) => {
                 if (info?._id !== selectedChat?._id || !selectedChat) {
-                    console.log(
-                        `info ${info?._id} selected chat ${selectedChat?._id}`
-                    );
                     handleSelectChat(e, info);
                 } else {
-                    console.log("initial messages are already loaded");
                 }
             }}
         >
@@ -56,9 +53,18 @@ export const ChatBox = ({
                     {/* todo: last message, either sent or revieve here */}
                     1/1/1970
                 </p>
-                <p className="number-of-messages bg-secondary-400">
-                    +9
-                    {/* {showUnSeenNumberOfMessages(info)} */}
+                <p
+                    className={`
+                        ${
+                            showUnSeenNumberOfMessages(info)
+                                ? "number-of-messages"
+                                : ""
+                        } 
+                        `}
+                >
+                    {showUnSeenNumberOfMessages(info)
+                        ? showUnSeenNumberOfMessages(info)
+                        : ""}
                 </p>
             </div>
         </div>

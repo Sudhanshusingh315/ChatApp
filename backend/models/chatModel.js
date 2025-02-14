@@ -64,6 +64,10 @@ const chatSchema = new Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "groupChat",
         },
+        isSeen: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: { currentTime: () => Date.now() },

@@ -3,6 +3,7 @@ import { Chat } from "../models/chatModel.js";
 import {
     getAllMessagesGroup,
     getAllMessagesOneOnOne,
+    updateMessagesOneOneOneFilter,
 } from "../aggregation/aggregation.pipeline.js";
 import { chatTypes } from "../constants.config.js";
 import { User } from "../models/userModel.js";
@@ -19,10 +20,22 @@ import mongoose from "mongoose";
 export const getAllMessages = async (req, res) => {
     console.log("getAllMessages being called");
     try {
-        const { senderId, recipientId } = req.params;
+        // todo: one optimization that i can do here is to add another additional fiter to the updateter function and will only update less documents.
+
+        let { senderId, recipientId } = req.params;
         if (!senderId || !recipientId) {
             throw new Error("No sender and recipient was found");
         } else {
+            await Chat.updateMany(
+                {
+                    ...updateMessagesOneOneOneFilter(senderId, recipientId),
+                },
+                {
+                    $set: {
+                        isSeen: true,
+                    },
+                }
+            );
             const getMessages = await Chat.aggregate(
                 getAllMessagesOneOnOne(senderId, recipientId)
             );

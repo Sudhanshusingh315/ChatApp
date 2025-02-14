@@ -1,0 +1,119 @@
+.theme-sections {
+    position: absolute;
+    height: 100%;
+    width: inherit;
+    border: 2px solid var(--primary-color);
+    inset: 0;
+    background-color: hsl(0, 0%, 29%);
+    padding: 2rem 1rem;
+
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    column-gap: 0.875em;
+    row-gap: 2em;
+
+    transform: translateX(-110%);
+    transition: transform 300ms ease-in-out;
+}
+
+.theme-section {
+    background-color: var(--background-color);
+    grid-column: span 4;
+    grid-row: span 3;
+    border-radius: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 5px;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: scale 150ms linear;
+    .dummy-message-theme {
+        width: 50%;
+        height: 20px;
+        border-radius: 0.625em;
+    }
+    .yours {
+        align-self: start;
+        background-color: hsl(0, 0%, 40%);
+        opacity: 0.5;
+    }
+    .mine {
+        background-color: var(--secondary-color);
+        align-self: end;
+    }
+}
+
+.theme-section:is(:hover) {
+    scale: 1.12;
+}
+
+.theme-section:not(:is(:hover)) {
+    opacity: 0.7;
+}
+
+/* todo: set the border to the selected theme */
+.theme-select-border {
+    outline: 2px solid var(--secondary-color-500);
+}
+
+.heading {
+    grid-column: 1/-1;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    background: -webkit-linear-gradient(
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Theme section */
+.theme-section[theme-option="default"] {
+    .mine {
+        background-color: var(--default-color);
+    }
+}
+.theme-section[theme-option="blue"] {
+    .mine {
+        background-color: var(--blue-color-scheme);
+    }
+}
+.theme-section[theme-option="red"] {
+    .mine {
+        background-color: var(--red-color-scheme);
+    }
+}
+.theme-section[theme-option="green-gray"] {
+    .mine {
+        background-color: var(--green-gray-color-scheme);
+    }
+}
+.theme-section[theme-option="brown"] {
+    .mine {
+        background-color: var(--brown-color-scheme);
+    }
+}
+.theme-section[theme-option="pasta-orange"] {
+    .mine {
+        background-color: var(--pastal-orange-scheme);
+    }
+}
+.theme-section[theme-option="pink"] {
+    .mine {
+        background-color: var(--pink-scheme);
+    }
+}
+.theme-section[theme-option="brown-orange"] {
+    .mine {
+        background-color: var(--coffee-scheme);
+    }
+}
+.theme-section[theme-option="yellow"] {
+    .mine {
+        background-color: var(--yellow-scheme);
+    }
+}

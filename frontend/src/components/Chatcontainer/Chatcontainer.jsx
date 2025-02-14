@@ -7,8 +7,11 @@ import "./styles.css";
 import ChatcontainerSkeleton from "../Skeletons/ChatcontainerSkeletons/ChatcontainerSkeleton";
 import EmojiPicker from "emoji-picker-react";
 import { FaFaceSmile, FaRegFaceSmile } from "react-icons/fa6";
+import { BsCheck2All } from "react-icons/bs";
 import Contact from "../Modals/ContactModal/Contact";
 import ViewMedia from "../Modals/ViewMedia/ViewMedia";
+import { BsCheck2 } from "react-icons/bs";
+import { messageTypes } from "../../constants/contants";
 export const Chatcontainer = forwardRef(
     (
         {
@@ -79,7 +82,7 @@ export const Chatcontainer = forwardRef(
                 }}
             >
                 {/* header */}
-                <div className="chat-header-section text-accent bg-primary/10">
+                <div className="chat-header-section">
                     <img src={selectedChat?.profileImage} alt="" />
                     <div className="user-info">
                         <p className="chat-selected-user">
@@ -108,7 +111,7 @@ export const Chatcontainer = forwardRef(
                     {isChatLoading ? (
                         <ChatcontainerSkeleton />
                     ) : (
-                        <div className="chat-talking-section text-accent">
+                        <div className="chat-talking-section">
                             {messages?.map(
                                 (
                                     {
@@ -119,6 +122,7 @@ export const Chatcontainer = forwardRef(
                                         imageWithText,
                                         pdfWithText,
                                         contactAsAMessage,
+                                        isSeen,
                                     },
                                     index
                                 ) => {
@@ -128,17 +132,17 @@ export const Chatcontainer = forwardRef(
                                             key={index}
                                             className={
                                                 userInfo?.userId === senderId
-                                                    ? "owner bg-secondary-400"
-                                                    : "reciever bg-[#1E1D2B]"
+                                                    ? "owner"
+                                                    : "reciever"
                                             }
                                         >
-                                            {selectedChat?._id !==
+                                            {/* {selectedChat?._id !==
                                                 recipientId && (
                                                 <p className="name-message-top">
                                                     {selectedChat?.firstName}{" "}
                                                     {selectedChat?.lastName}
                                                 </p>
-                                            )}
+                                            )} */}
                                             {renderMessage(
                                                 messageType,
                                                 message,
@@ -146,6 +150,18 @@ export const Chatcontainer = forwardRef(
                                                 pdfWithText,
                                                 contactAsAMessage
                                             )}
+                                            {messageType ===
+                                                messageTypes.TEXT &&
+                                                userInfo?.userId ===
+                                                    senderId && (
+                                                    <div className="check-box">
+                                                        {isSeen ? (
+                                                            <BsCheck2All color="blue" />
+                                                        ) : (
+                                                            <BsCheck2 />
+                                                        )}
+                                                    </div>
+                                                )}
                                         </div>
                                     );
                                 }
@@ -155,7 +171,7 @@ export const Chatcontainer = forwardRef(
                 </div>
 
                 {/* message box input */}
-                <div className="send-chat-configuration bg-secondary-400">
+                <div className="send-chat-configuration">
                     <input
                         ref={imageRef}
                         type="file"
@@ -222,7 +238,7 @@ export const Chatcontainer = forwardRef(
                         onKeyDown={handleEnterSend}
                     />
                     <p
-                        className="emoji-picker relative cursor-pointer hover:text-secondary-400-skeleton"
+                        className="emoji-picker relative cursor-pointer"
                         onClick={handleEmojiPicker}
                     >
                         {openEmojiPicker ? <FaRegFaceSmile /> : <FaFaceSmile />}

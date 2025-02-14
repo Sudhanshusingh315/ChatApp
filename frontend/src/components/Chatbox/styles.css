@@ -63,15 +63,16 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        background-color: var(--secondary-color-500);
     }
 }
 .chat-inbox::after {
     content: "";
     display: block;
     width: 81%;
-    height: 2px;
+    height: 1px;
     position: absolute;
-    background-color: var(--border-list);
+    background-color: var(--accent-color);
     bottom: 0;
     right: 0;
     opacity: 0.2;

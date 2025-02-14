@@ -1,14 +1,13 @@
 import "./styles.css";
 let NEW_ARRAY = new Array(4).fill("");
 export default function ChatBoxSkeleton() {
-    console.log("new array", NEW_ARRAY);
     return (
         <div>
             {NEW_ARRAY?.map((_, index) => {
                 return (
                     <div
                         key={index}
-                        className="flex gap-1 px-4 py-3 bg-primary/60 "
+                        className="flex gap-1 px-4 py-3 bg-primary/60 bg-pink-600 "
                     >
                         <div className=" rounded-full min-w-4 w-14 h-14 bg-secondary-400 animate-pulse"></div>
                         <div className="grid gap-1 flex-1">

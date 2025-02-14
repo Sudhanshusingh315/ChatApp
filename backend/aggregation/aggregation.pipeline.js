@@ -141,3 +141,12 @@ export const getAllMessagesGroup = (roomId) => {
         },
     ];
 };
+
+export const updateMessagesOneOneOneFilter = (senderId, recieverId) => {
+    senderId = new mongoose.Types.ObjectId(senderId);
+    recieverId = new mongoose.Types.ObjectId(recieverId);
+    return {
+        senderId: { $in: [senderId, recieverId] },
+        recipientId: { $in: [senderId, recieverId] },
+    };
+};

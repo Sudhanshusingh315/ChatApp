@@ -2,56 +2,154 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{
-    --background-color:#1B1D26;
-    --accent-color:#EEEEEE;
-    --chat-bg-color:#1E1D2B;
-    background-color: #151515e1;
-}
 /* 1. Use a more-intuitive box-sizing model */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
-  }
-  
-  /* 2. Remove default margin */
-  * {
+}
+
+/* 2. Remove default margin */
+* {
     margin: 0;
-  }
-  
-  body {
+}
+
+body {
     /* 3. Add accessible line-height */
     line-height: 1.5;
     /* 4. Improve text rendering */
     -webkit-font-smoothing: antialiased;
-  }
-  
-  /* 5. Improve media defaults */
-  img, picture, video, canvas, svg {
+}
+
+/* 5. Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
     display: block;
     max-width: 100%;
-  }
-  
-  /* 6. Inherit fonts for form controls */
-  input, button, textarea, select {
+}
+
+/* 6. Inherit fonts for form controls */
+input,
+button,
+textarea,
+select {
     font: inherit;
-  }
-  
-  /* 7. Avoid text overflows */
-  p, h1, h2, h3, h4, h5, h6 {
+}
+
+/* 7. Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     overflow-wrap: break-word;
-  }
-  
-  /* 8. Improve line wrapping */
-  p {
+}
+
+/* 8. Improve line wrapping */
+p {
     text-wrap: pretty;
-  }
-  h1, h2, h3, h4, h5, h6 {
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     text-wrap: balance;
-  }
-  
-  /*
+}
+
+/*
     9. Create a root stacking context
   */
-  #root, #__next {
+#root,
+#__next {
     isolation: isolate;
-  }
+}
+
+:root {
+    background-color: #333;
+
+    /* default color scheme */
+
+    --background-color: #333;
+    --primary-color: hsl(268, 32%, 62%);
+    --secondary-color: hsl(275, 41%, 82%);
+    --secondary-color-500: hsl(275, 41%, 50%);
+    --accent-color: hsl(0, 0%, 93%);
+
+    /* theme section */
+    --default-color: var(--primary-color);
+    --blue-color-scheme: #393e46;
+    --red-color-scheme: #a04747;
+    --green-gray-color-scheme: #61876e;
+    --brown-color-scheme: #af8f6f;
+    --pastal-orange-scheme: #481e14;
+    --pink-scheme: #c1a3a3;
+    --coffee-scheme: #d6c0b3;
+    --yellow-scheme: #393e46;
+}
+
+body {
+    transition: color 300ms ease-in-out;
+}
+
+[data-theme="blue"] {
+    --primary-color: #222831;
+    --secondary-color: #393e46;
+    --secondary-color-500: #00adb5;
+    --accent-color: #eeeeee;
+}
+
+[data-theme="red"] {
+    --primary-color: #1d1616;
+    --secondary-color: #8e1616;
+    --secondary-color-500: #d84040;
+    --accent-color: #eeeeee;
+}
+
+[data-theme="green-gray"] {
+    --primary-color: #3c6255;
+    --secondary-color: #61876e;
+    --secondary-color-500: #a6bb8d;
+    --accent-color: #eae7b1;
+}
+
+[data-theme="brown"] {
+    --primary-color: #e4e0e1;
+    --secondary-color: #d6c0b3;
+    --secondary-color-500: #ab886d;
+    --accent-color: #493628;
+}
+
+[data-theme="pastal-orange"] {
+    --primary-color: #343131;
+    --secondary-color: #a04747;
+    --secondary-color-500: #d8a25e;
+    --accent-color: #eedf7a;
+}
+
+[data-theme="pink"] {
+    --primary-color: #f3c5c5;
+    --secondary-color: #c1a3a3;
+    --secondary-color-500: #886f6f;
+    --accent-color: #694e4e;
+}
+
+[data-theme="coffee"] {
+    --primary-color: #f8f4e1;
+    --secondary-color: #af8f6f;
+    --secondary-color-500: #74512d;
+    --accent-color: #543310;
+}
+
+[data-theme="yellow"] {
+    --primary-color: #222831;
+    --secondary-color: #393e46;
+    --secondary-color-500: #ffd369;
+    --accent-color: #eeeeee;
+}

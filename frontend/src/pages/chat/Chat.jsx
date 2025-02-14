@@ -3,7 +3,7 @@ import "./chat.css";
 import { CiDark, CiShop } from "react-icons/ci";
 import { CiChat1 } from "react-icons/ci";
 import { CiCirclePlus } from "react-icons/ci";
-import { BsFillChatTextFill } from "react-icons/bs";
+import { BsCheck2, BsFillChatTextFill } from "react-icons/bs";
 // todo: refactor the code, and break this into small components.
 import { SocketContext } from "../../context/SocketContex";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +23,8 @@ import ChatBoxSkeleton from "../../components/Skeletons/ChatboxSkeletons/ChatBox
 import { useDebounce } from "../../hooks/useDebounce";
 import { SearchContactAPI } from "../../api/search.api";
 import SearchContact from "../../components/SearchContacts/SearchContact";
+import DefaultChatContainer from "../../components/DefaultChatContainer/DefaultChatContainer";
+import ThemeSection from "../../components/ThemeSection/ThemeSection";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
@@ -45,16 +47,18 @@ export default function Chat() {
     const [openPopUp, setOpenPopUp] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [openImageWithTextModal, setOpenImageWithTextModal] = useState(false);
+    const [messageUnSeen, setMessageUnSeen] = useState([]);
     const [messageSeen, setMessageSeen] = useState([]);
     const [isChatBoxLoaded, setIsChatBoxLoaded] = useState(true);
     const [searchContactGlobal, setSearchContactGlobal] = useState("");
     const [globalSearchResults, setGlobalSearchResults] = useState([]);
     const debouncedSearch = useDebounce(searchContactGlobal);
     const [showViewMedia, setShowViewMedia] = useState(false);
-    const [showViewMediaContent,setShowViewMediaContent] = useState();
+    const [showViewMediaContent, setShowViewMediaContent] = useState();
     const dispatch = useDispatch();
     const imageRef = useRef(null);
     const pdfRef = useRef(null);
+    const [showThemeSection, setShowThemeSection] = useState(false);
     // socket init
     console.log("online users", onlineUsers);
     useEffect(() => {
@@ -70,12 +74,14 @@ export default function Chat() {
             socket.on("recieveMessages", (emittedInfo) => {
                 console.log("recieveMessages", emittedInfo);
                 if (selectedChat?._id !== emittedInfo?.senderId) {
-                    // setMessageSeen for the unseen message notification on the right side of the chat ui
-                    setMessageSeen((prev) => {
+                    // setMessageUnSeen for the unseen message notification on the right side of the chat ui
+
+                    setMessageUnSeen((prev) => {
                         const userIndex = prev.findIndex(
                             (item) => item?.senderId === emittedInfo?.senderId
                         );
 
+                        // found the element
                         if (userIndex !== -1) {
                             return prev.map((item, index) => {
                                 return index === userIndex
@@ -117,6 +123,58 @@ export default function Chat() {
                         return [...prev, emittedInfo];
                     });
                 }
+
+                // seen messages => chat is opened, set the isSeen to true
+
+                setMessageSeen((prev) => {
+                    // found the element
+                    let messageIndex = prev.findIndex(
+                        (chatInfo) =>
+                            chatInfo?.messageId === emittedInfo?.createdAt
+                    );
+                    if (messageIndex !== -1) {
+                        return prev.map((item, index) => {
+                            return index === messageIndex
+                                ? {
+                                      ...item,
+                                      isSeen: true,
+                                  }
+                                : item;
+                        });
+                    } else {
+                        return [
+                            ...prev,
+                            {
+                                messageId: emittedInfo?.createdAt,
+                                isSeen: false,
+                            },
+                        ];
+                    }
+                });
+
+                setMessageSeen((prev) => {
+                    console.log(
+                        `slectedChat ${selectedChat?._id} senderId ${emittedInfo?.senderId}`
+                    );
+                    if (selectedChat?._id === emittedInfo?.senderId) {
+                        console.log("i'm the sender");
+                        return prev?.map((element) => {
+                            return element?.messageId === emittedInfo?.createdAt
+                                ? {
+                                      ...element,
+                                      isSeen: true,
+                                  }
+                                : element;
+                        });
+                    }
+                    return [
+                        ...prev,
+                        {
+                            messageId: emittedInfo?.createdAt,
+                            isSeen: false,
+                        },
+                    ];
+                });
             });
 
             socket.on("getOnlineUsers", (onlineUsers) => {
@@ -135,7 +193,7 @@ export default function Chat() {
     }, [socket]);
     // todo: put the get contact somewhere else.
     console.log("messages", messages);
-
+    console.log("isSeenMessage", messageSeen);
     useEffect(() => {
         setIsChatBoxLoaded(true);
         (async function () {
@@ -146,7 +204,6 @@ export default function Chat() {
                 }
             );
             setIsChatBoxLoaded(false);
-            console.log("data from groups", data);
             setChatBox((prev) => {
                 return [
                     ...data?.data[0]?.contactDetails,
@@ -169,23 +226,19 @@ export default function Chat() {
 
     useEffect(() => {
         if (debouncedSearch) {
-            console.log("call the api here");
             (async function () {
                 const { data } = await SearchContactAPI(debouncedSearch);
-                console.log("data is", data);
                 if (data) {
                     setGlobalSearchResults([...data?.data]);
                 }
             })();
         }
     }, [debouncedSearch]);
-    console.log("chatBox", chatBox);
     // select the chat
     const handleSelectChat = async (e, info) => {
         e.preventDefault();
         // e.stopPropagation();
         setSelectedChat(info);
-        console.log("info", info);
         const chatType = info?.chatType;
 
         let initMessages = {};
@@ -222,9 +275,17 @@ export default function Chat() {
 
         // handle with switch case.
 
-        // get all past message
+        // remove the user from the unseen messages state, since the message is now seen.
+        setMessageUnSeen((prev) => {
+            return prev?.filter((item, index) => {
+                return item?.senderId !== info?._id;
+            });
+        });
+
+        setMessageSeen([]);
     };
     // send the message
+    console.log("unseen messages", messageUnSeen);
     console.log("messages", messages);
     const sendMessage = (message) => {
         if (!message) return;
@@ -246,10 +307,13 @@ export default function Chat() {
         }
         // decide on the basics of chat application.
         const chatType = selectedChat?.chatType;
-        let emitInfo = {};
+        let emitInfo = {
+            isSeen: false,
+        };
         switch (chatType) {
             case chatTypes.OneOnOne:
                 emitInfo = {
+                    ...emitInfo,
                     ...(message && { message }),
                     ...(messageType
                         ? { messageType }
@@ -280,6 +344,7 @@ export default function Chat() {
                 break;
             case chatTypes.groupChat:
                 emitInfo = {
+                    ...emitInfo,
                     roomId: selectedChat?._id,
                     ...(message && { message }),
                     ...(messageType && { messageType }),
@@ -438,9 +503,11 @@ export default function Chat() {
             case messageTypes.PDF:
                 break;
             case messageTypes.IMAGEWITHTEXT:
-                const content = Array.isArray(imageWithText) ? imageWithText[0].image : imageWithText?.image; 
+                const content = Array.isArray(imageWithText)
+                    ? imageWithText[0].image
+                    : imageWithText?.image;
                 return (
-                    <>
+                    <div className="flex-col felx-1 flex-grow">
                         <img
                             onClick={(e) => {
                                 e.stopPropagation;
@@ -452,22 +519,34 @@ export default function Chat() {
                             }
                             alt=""
                         />
-                        <p className="text-image">{imageWithText[0]?.text}</p>
-                    </>
+                        <div className="flex">
+                            <p className="text-image">
+                                {imageWithText[0]?.text}
+                            </p>
+                            <div className="self-end">
+                                <BsCheck2 />
+                            </div>
+                        </div>
+                    </div>
                 );
                 break;
             case messageTypes.PDFWITHTEXT:
                 return (
-                    <>
+                    <div className="felx-col flex-1 flex-grow">
                         <img
                             className="message-image"
                             src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg"
                             alt=""
                         />
-                        <p className="text-image">
-                            {pdfWithText[0]?.text || pdfWithText?.text}
-                        </p>
-                    </>
+                        <div className="flex">
+                            <p className="text-image">
+                                {pdfWithText[0]?.text || pdfWithText?.text}
+                            </p>
+                            <div className="self-end">
+                                <BsCheck2 />
+                            </div>
+                        </div>
+                    </div>
                 );
                 break;
             case messageTypes.CONTACT:
@@ -541,14 +620,13 @@ export default function Chat() {
             }
         );
     };
-    console.log(`pdf file from firebase ${pdfFile}`);
+
     const getLastSeenMessage = (lastSeenTimestamp) => {
         const lastSeen = new Date(lastSeenTimestamp);
         const now = new Date();
         const diffMs = now - lastSeen;
         const diffMinutes = diffMs / (1000 * 60);
         const diffHours = diffMs / (1000 * 60 * 60);
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
         // Format time in AM/PM
         const formatTime = (date) => {
@@ -574,17 +652,14 @@ export default function Chat() {
 
     // todo: reuse this in it's own component
     const showUnSeenNumberOfMessages = (info) => {
-        const indexOfUser = messageSeen?.findIndex(
+        const indexOfUser = messageUnSeen?.findIndex(
             (sender) => sender?.senderId === info?._id
         );
-        console.log("indexOfusers", indexOfUser);
         if (indexOfUser === -1) {
             return;
         } else {
-            const value = messageSeen[indexOfUser]?.unSeenMessage;
-            console.log(`number of messages are ${value}`);
-
-            return value > 9 ? "+9" : value;
+            let value = messageUnSeen[indexOfUser]?.unSeenMessage;
+            return value;
         }
     };
     function whoSentLastMessage(chatBoxUserId) {
@@ -658,14 +733,21 @@ export default function Chat() {
     return (
         <div className="chat-wrapper">
             <div className="sidebar">
-                <div className="chat-action bg-primary/10">
+                <div className="chat-action">
                     <div className="user-chat--info">
                         <img
                             className="user-profile"
                             src={userInfo?.profileImage}
                             alt="user-profile-image"
                         />
-                        <p className="themes">
+                        <p
+                            className="themes"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                console.log("click click");
+                                setShowThemeSection(!showThemeSection);
+                            }}
+                        >
                             <CiDark />
                         </p>
                         <p className="stories">
@@ -685,12 +767,12 @@ export default function Chat() {
                         searchContactGlobal={searchContactGlobal}
                     />
                     {globalSearchResults.length >= 1 ? (
-                        <div className="grid px-4 gap-1 bg-secondary-400 rounded-b-md py-3">
+                        <div className="grid px-4 gap-1 globalSearchResults rounded-b-md py-3">
                             {globalSearchResults?.map((contact, index) => {
                                 return (
                                     <p
                                         key={index}
-                                        className="rounded-md px-2 py-3 bg-secondary-300 text-primary-bg font-semibold"
+                                        className="rounded-md px-2 py-3  text-primary-bg font-semibold globalSearchIndividualResults"
                                         onClick={(e) => {
                                             messageThisConatct(e, contact);
                                         }}
@@ -702,22 +784,14 @@ export default function Chat() {
                         </div>
                     ) : (
                         <div className="messages-category">
-                            <p className="bg-secondary-400/85 text-primary">
-                                All
-                            </p>
-                            <p className="bg-secondary-400/85 text-primary">
-                                Unread
-                            </p>
-                            <p className="bg-secondary-400/85 text-primary">
-                                Favorites
-                            </p>
-                            <p className="bg-secondary-400/85 text-primary">
-                                Groups
-                            </p>
+                            <p className="">All</p>
+                            <p className="">Unread</p>
+                            <p className="">Favorites</p>
+                            <p className="">Groups</p>
                         </div>
                     )}
                 </div>
-                <div className="chat-inboxes text-accent">
+                <div className="chat-inboxes">
                     {/* todo: needs a shimer effect IMPORTANT */}
 
                     {isChatBoxLoaded ? (
@@ -734,6 +808,9 @@ export default function Chat() {
                                     lastMessageInChatBox={lastMessageInChatBox}
                                     whoSentLastMessage={whoSentLastMessage}
                                     userInfo={userInfo}
+                                    showUnSeenNumberOfMessages={
+                                        showUnSeenNumberOfMessages
+                                    }
                                 />
                             );
                         })
@@ -810,6 +887,13 @@ export default function Chat() {
                         })}
                     </div>
                 </div>
+
+                {/* this needs to for the theme switcher */}
+
+                <ThemeSection
+                    showThemeSection={showThemeSection}
+                    setShowThemeSection={setShowThemeSection}
+                />
             </div>
             {/* chat conponent */}
             {selectedChat ? (
@@ -843,9 +927,9 @@ export default function Chat() {
                     showViewMediaContent={showViewMediaContent}
                 />
             ) : (
-                <div className="text-accent">
+                <div className="default-chat">
                     {/* todo: pressing escap make the component switch to default selectesate that is null */}
-                    Mean while tab until i code this
+                    <DefaultChatContainer />
                 </div>
             )}
         </div>
