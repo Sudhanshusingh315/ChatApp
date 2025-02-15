@@ -3,6 +3,7 @@ import {
     getAllGroupMessages,
     getAllMessages,
     saveMessages,
+    scheduledMessage,
 } from "../controllers/messagesController.js";
 import { createGroup } from "../controllers/groupController.js";
 import protectedMiddleware from "../middlewares/protected.js";
@@ -23,5 +24,7 @@ messageRoutes.get(
     protectedMiddleware,
     getAllGroupMessages
 );
+
+messageRoutes.post("/scheduled-message", scheduledMessage);
 
 export default messageRoutes;

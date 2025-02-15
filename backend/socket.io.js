@@ -16,7 +16,7 @@ const io = new Server(server, {
     cors: "*",
 });
 
-const getSocketId = (receiverId) => {
+export const getSocketId = (receiverId) => {
     return userSocketMap[receiverId];
 };
 
@@ -79,14 +79,14 @@ io.on("connection", (socket) => {
     // delete messages
     socket.on("deleteMessage", async (data) => {
         if (!data) return;
-        let { _id, recipientId,senderId } = data;
+        let { _id, recipientId, senderId } = data;
 
         // make the api call for deleting the message,
         // stream the updated list here.
-        const result = await deleteMessage(_id,recipientId,senderId);
+        const result = await deleteMessage(_id, recipientId, senderId);
         const id = getSocketId(recipientId);
         if (id) {
-            console.log("sent the data, user is online",result);
+            console.log("sent the data, user is online", result);
             io?.to(id)?.emit("recieveDeleteMessages", result);
         }
     });

@@ -1,5 +1,5 @@
 import mongoose, { Types } from "mongoose";
-import { chatTypes } from "../constants.config.js";
+import { chatTypes, scheduleStatus } from "../constants.config.js";
 // search all contacts
 
 export const contactPipeline = (userId) => {
@@ -149,4 +149,16 @@ export const updateMessagesOneOneOneFilter = (senderId, recieverId) => {
         senderId: { $in: [senderId, recieverId] },
         recipientId: { $in: [senderId, recieverId] },
     };
+};
+
+export const getAllPendingScheduledMessages = () => {
+    return [
+        {
+            $match: {
+                // scheduledAt: { $lte: new Date().getTime() },
+                scheduledAt: { $lte: 1742063400000 },
+                status: scheduleStatus.PENDING,
+            },
+        },
+    ];
 };

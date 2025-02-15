@@ -19,3 +19,9 @@ export const fileFormats ={
     PDF:"pdf",
     IMAGE:"image"
 }
+
+export const scheduleStatus = {
+    PENDING: "pending",
+    SENT: "sent",
+    FAILED: "failed",
+};

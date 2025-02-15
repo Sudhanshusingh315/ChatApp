@@ -185,6 +185,10 @@ export default function Chat() {
                 console.log("delete messages array", messages);
                 setMessages(messages);
             });
+
+            socket.on("scheduledMessage", (updatedMessage) => {
+                console.log("resulted array updated", updatedMessage);
+            });
         }
         return () => {
             if (socket) {

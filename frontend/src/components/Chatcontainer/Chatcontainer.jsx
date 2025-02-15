@@ -351,6 +351,8 @@ export const Chatcontainer = forwardRef(
                 <ScheduleMessages
                     open={showScheduleMessage}
                     onClose={handleCloseScheduleMessage}
+                    userInfo={userInfo}
+                    selectedChat={selectedChat}
                 />
             </div>
         );

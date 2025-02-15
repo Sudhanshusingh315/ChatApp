@@ -6,7 +6,7 @@ import authRoutes from './routes/authRoute.js';
 import { app,io,server } from './socket.io.js';
 import contactRoutes from './routes/contactRoute.js';
 import messageRoutes from './routes/messageRoute.js';
-
+import "./crons/crons.services.js"
 app.use(cors());
 app.use(express.json());
 

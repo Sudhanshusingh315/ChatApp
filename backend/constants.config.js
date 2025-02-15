@@ -1,18 +1,24 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
 
 export const configFile = {
     mongodbConnectionString: process.env.DATABASE,
     jwtSecrete: process.env.JWT_KEY,
-    PORT: process.env.PORT
+    PORT: process.env.PORT,
 };
 
 export const responseStatus = {
-    SUCCESS:"SUCCESS",
-    FAIL:"FAIL"
-}
+    SUCCESS: "SUCCESS",
+    FAIL: "FAIL",
+};
 
 export const chatTypes = {
-    OneOnOne :"OneOnOne",
-    groupChat :"GroupChat"
-}
+    OneOnOne: "OneOnOne",
+    groupChat: "GroupChat",
+};
+
+export const scheduleStatus = {
+    PENDING: "pending",
+    SENT: "sent",
+    FAILED: "failed",
+};

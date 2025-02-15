@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Schema, Types } from "mongoose";
 import { Chat } from "../models/chatModel.js";
 import {
     getAllMessagesGroup,
@@ -8,6 +8,7 @@ import {
 import { chatTypes } from "../constants.config.js";
 import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
+import { ScheduledMessage } from "../models/schedule.js";
 
 // get the messages
 // post and save the messages
@@ -228,4 +229,49 @@ export const deleteMessage = async (chatId, senderId, recipientId) => {
         },
     ]);
     return result;
+};
+
+export const scheduledMessage = async (req, res) => {
+    const {
+        message,
+        senderId,
+        recipientId,
+        scheduledAt,
+        status,
+        created_at,
+        messageType,
+    } = req.body;
+
+    try {
+        const scheduledMessage = await ScheduledMessage.create({
+            message,
+            senderId,
+            recipientId,
+            scheduledAt,
+            status,
+            created_at,
+            messageType,
+        });
+        console.log("req body",req.body);
+
+        if (!scheduledMessage) {
+            return res.status(404).json({
+                success: false,
+                message: "Couldn't save message, try again later!",
+            });
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: "Message saved successfully",
+            data: {
+                scheduledMessage,
+            },
+        });
+    } catch (err) {
+        return res.status(401).json({
+            success: false,
+            error: err.message,
+        });
+    }
 };

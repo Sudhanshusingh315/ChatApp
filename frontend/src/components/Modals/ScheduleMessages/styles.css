@@ -17,6 +17,17 @@
     .send-schedule {
         font-size: 2rem;
         margin-left: auto;
+        /* cursor: pointer; */
+    }
+
+    .go-back {
+        all: unset;
+        background-color: inherit;
+        justify-self: start;
+        background-color: var(--background-color);
+        padding: 0.25em;
+        border-radius: 50%;
+        font-size: 0.875rem;
         cursor: pointer;
     }
 }
@@ -24,7 +35,7 @@
 .schedule-content > textarea {
     width: 100%rem;
     width: 30rem;
-    border: 1px solid black;
+    border: 1px solid var(--secondary-color);
     height: 5rem;
     min-height: 8rem;
     max-height: 9rem;
@@ -40,6 +51,14 @@
     gap: 1rem;
 }
 
+.picked-date{
+    background-color: var(--background-color);
+    padding: .25em .875em;
+    font-family: 1.1rem;
+    color: var(--primary-color);
+    border-radius: .875em;
+}
 .date-pick-icon {
     font-size: 2rem;
+    cursor: pointer;
 }
