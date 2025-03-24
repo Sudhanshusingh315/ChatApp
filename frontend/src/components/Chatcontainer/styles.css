@@ -3,6 +3,7 @@
     flex-direction: column;
     grid-column: 7/-1;
     /* overflow-y: auto; */
+    position: relative;
 }
 
 .user-info {
@@ -14,6 +15,7 @@
     }
 }
 .chat-header-section {
+    position: relative;
     padding: 1.25rem 0.75rem;
     display: flex;
     align-items: center;
@@ -43,6 +45,7 @@
     aspect-ratio: 1/1;
     font-size: 1.5rem;
     color: var(--accent-color);
+    cursor: pointer;
 }
 
 .chat-talking-section {
@@ -219,9 +222,9 @@
         p[mediatype="contact"]::before {
             background-image: url("../../assets/contact2-svgrepo-com.svg");
         }
-        p[mediatype="schedule"]::before{
+        p[mediatype="schedule"]::before {
             /* background-color: url("../../assets/timer-svgrepo-com.svg"); */
-            content: '⏳';
+            content: "⏳";
         }
         p::before {
             content: "";
@@ -234,6 +237,46 @@
 .photo-video {
     display: none;
 }
+
+.chat-details-section {
+    position: absolute;
+    inset: 0;
+    background-color: var(--background-color);
+    width: 70%;
+    transform: translateX(-110%);
+    transition: transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 2;
+    -webkit-box-shadow: 18px 0px 300px 0px rgba(0, 0, 0, 0.65);
+    -moz-box-shadow: 18px 0px 300px 0px rgba(0, 0, 0, 0.65);
+    box-shadow: 18px 0px 300px 0px rgba(0, 0, 0, 0.65);
+}
+
+.meow {
+    display: flex;
+    background-color: rebeccapurple;
+    height: 100%;
+    color: #333;
+    overflow: hidden;
+}
+
+.meow > * {
+    width: 100%;
+    flex-shrink: 0;
+    background-color: var(--background-color);
+    transition: transform 200ms ease-in-out;
+}
+
+.group-settings {
+    padding: 1rem;
+}
+
+/* .section-1{
+
+    background-color: lightblue;
+}
+.section-2{
+   background-color: lightsalmon; 
+} */
 
 @keyframes popUpAnimation {
     0% {
@@ -279,6 +322,45 @@
     cursor: pointer;
 }
 
+/* test menu */
+.action-menu {
+    position: absolute;
+    width: max-content;
+    aspect-ratio: 1/1.1;
+    padding: 0.75em;
+    font-size: 1.1rem;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    backdrop-filter: blur(15px);
+    outline: 2px solid var(--secondary-color-500);
+    color: black;
+    transform: translate(-105%, 5%);
+    isolation: isolate;
+    z-index: 2;
+    color: var(--accent-color);
+    border-radius: 0.25em;
+    display: grid;
+    align-content: start;
+    gap: 0.875em;
+
+    box-shadow: 4.9px 9.8px 9.8px hsl(0deg 0% 0% / 0.35);
+    transform-origin: top left;
+    animation-name: showUp;
+    animation-duration: 300ms;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+}
+
+.action-menu > * {
+    cursor: pointer;
+    background-color: var(--secondary-color-500);
+    border-radius: 0.25em;
+    padding: 0.5em;
+}
+
 @media (min-width: 850px) {
     .sidebar {
         /* todo: fixed the borded on the right side */
@@ -287,5 +369,22 @@
     }
     .chat-container {
         grid-column: 6/-1;
+    }
+}
+
+@keyframes showUp {
+    0% {
+        scale: 0.1;
+    }
+    100% {
+        scale: 1;
+    }
+}
+@keyframes reveal {
+    0% {
+        scale: 2;
+    }
+    100% {
+        scale: 1;
     }
 }

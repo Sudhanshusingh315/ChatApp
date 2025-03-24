@@ -1,15 +1,19 @@
 .context-menu {
-    background-color: pink;
+    /* background-color: pink; */
     position: absolute;
     z-index: 1;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 0.25rem;
     padding: 1em;
     align-content: start;
-    background-color: var(--background-color);
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+    backdrop-filter: blur(15px);
     outline: 2px solid var(--primary-color);
     border-radius: 0.875em;
-    left: 400px;
+    transform: translateX(-100%); 
+    width: max-content;
+    
 }
 
 .context-menu > * {

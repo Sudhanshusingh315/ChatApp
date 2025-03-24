@@ -3,7 +3,6 @@ import { CiMenuKebab, CiSearch } from "react-icons/ci";
 import { IoIosAttach } from "react-icons/io";
 import { IoSendSharp } from "react-icons/io5";
 import ImageWithText from "../Modals/ImageWithText/ImageWithText";
-import "./styles.css";
 import ChatcontainerSkeleton from "../Skeletons/ChatcontainerSkeletons/ChatcontainerSkeleton";
 import EmojiPicker from "emoji-picker-react";
 import { FaFaceSmile, FaRegFaceSmile } from "react-icons/fa6";
@@ -11,9 +10,15 @@ import { BsCheck2All } from "react-icons/bs";
 import Contact from "../Modals/ContactModal/Contact";
 import ViewMedia from "../Modals/ViewMedia/ViewMedia";
 import { BsCheck2 } from "react-icons/bs";
-import { messageTypes } from "../../constants/contants";
+import { chatTypes, messageTypes } from "../../constants/contants";
 import ContextMenu from "../Modals/ContextMenu/ContextMenu";
 import ScheduleMessages from "../Modals/ScheduleMessages/ScheduleMessages";
+import { CiCircleInfo } from "react-icons/ci";
+import ProfileDetails from "../ProfileDetails/ProfileDetails";
+import { CiSettings } from "react-icons/ci";
+
+import "./styles.css";
+
 export const Chatcontainer = forwardRef(
     (
         {
@@ -55,12 +60,43 @@ export const Chatcontainer = forwardRef(
         const [showContextMenu, setShowContextMenu] = useState(false);
         const [contextMenuMessageInfo, setContextMenuMessageInfo] = useState();
         const [position, setPosition] = useState();
+        const [chatHeaderPosition, setChatHeaderPosition] = useState();
         const [showScheduleMessage, setShowScheduledMessage] = useState(false);
+        const [showHeaderContextMenu, setShowHeaderContextMenu] =
+            useState(false);
+        const [showChatDetailsSection, setShowChatDetailsSection] =
+            useState(false);
+        const scrollableDiv = useRef(null);
+        const chatHeaderSectionRef = useRef(null);
+        const [showMeow, setShowMeow] = useState(true);
+        const [groupSettings, setGroupSettings] = useState(false);
+
+        const handleshowChatDetailsSction = (e) => {
+            e.stopPropagation();
+            setShowChatDetailsSection(!showChatDetailsSection);
+            setShowHeaderContextMenu(false);
+        };
+
+        console.log("div meow", showMeow);
+
         const handleEmojiPicker = (e) => {
             e.stopPropagation();
             setOpenEmojiPicker((prev) => !prev);
         };
+        const handleChatHeaderSectionContextMenu = (e) => {
+            if (!chatHeaderSectionRef.current) return;
 
+            setShowHeaderContextMenu(!showHeaderContextMenu);
+
+            e.stopPropagation();
+            const { left, top } =
+                chatHeaderSectionRef.current.getBoundingClientRect();
+            let position = {
+                left: e.clientX - left,
+                top: e.clientY - top,
+            };
+            setChatHeaderPosition(position);
+        };
         const handleEmojiclick = (Emojivalue) => {
             const { emoji } = Emojivalue;
             setMessageBox((prev) => prev + emoji);
@@ -81,20 +117,18 @@ export const Chatcontainer = forwardRef(
         const handleContextMenu = (e, messageInfo) => {
             e.stopPropagation();
             e.preventDefault();
-            const scrollableParent = document.querySelector(
-                ".chat-talking-section"
-            ); // Adjust this selector
-            const parentRect = scrollableParent.getBoundingClientRect();
 
-            setPosition({
-                left: e.clientX - parentRect.left + scrollableParent.scrollLeft,
-                top: e.clientY - parentRect.top + scrollableParent.scrollTop,
-            });
+            if (!scrollableDiv?.current) return;
 
-            console.log("e", e);
+            const { left, top } = scrollableDiv.current.getBoundingClientRect();
+            const scrollY = scrollableDiv.current.scrollTop;
+            const scrollX = scrollableDiv.current.scrollLeft;
+
             let position = {
-                top: e.clientY,
+                left: e.clientX - left + scrollX,
+                top: e.clientY - top + scrollY,
             };
+
             if (messageInfo?.senderId !== userInfo?.userId) return;
             setShowContextMenu(!showContextMenu);
             setContextMenuMessageInfo(messageInfo);
@@ -122,7 +156,7 @@ export const Chatcontainer = forwardRef(
                 }}
             >
                 {/* header */}
-                <div className="chat-header-section">
+                <div className="chat-header-section" ref={chatHeaderSectionRef}>
                     <img src={selectedChat?.profileImage} alt="" />
                     <div className="user-info">
                         <p className="chat-selected-user">
@@ -141,9 +175,54 @@ export const Chatcontainer = forwardRef(
                     <p className="search-icon">
                         <CiSearch />
                     </p>
-                    <p className="kebab-icon">
+                    <p
+                        className="kebab-icon"
+                        onClick={(e) => {
+                            handleChatHeaderSectionContextMenu(e);
+                        }}
+                    >
                         <CiMenuKebab />
                     </p>
+
+                    {/* test menu */}
+                    {/* todo: this should be on it's own, but i want to test few modals first, and later i can put this into it's own component */}
+                    {showHeaderContextMenu && (
+                        <div
+                            className="action-menu"
+                            style={chatHeaderPosition}
+                            onClick={() => {
+                                setShowHeaderContextMenu(
+                                    !showHeaderContextMenu
+                                );
+                            }}
+                        >
+                            <div
+                                onClick={() => {
+                                    setShowScheduledMessage(
+                                        !showScheduleMessage
+                                    );
+                                }}
+                            >
+                                Scheduled Messages
+                            </div>
+                            <div
+                                onClick={handleshowChatDetailsSction}
+                                className="flex justify-start items-center gap-2"
+                            >
+                                Chat Details <CiCircleInfo />
+                            </div>
+                            {selectedChat?.chatType === chatTypes.groupChat && (
+                                <div
+                                    className="flex justify-start items-center gap-2"
+                                    onClick={(e) => {
+                                        setGroupSettings(!groupSettings);
+                                    }}
+                                >
+                                    Group settings <CiSettings />
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
                 {/* chat component */}
 
@@ -152,6 +231,7 @@ export const Chatcontainer = forwardRef(
                         <ChatcontainerSkeleton />
                     ) : (
                         <div
+                            ref={scrollableDiv}
                             className="chat-talking-section"
                             onClick={handleCloseContextMenu}
                         >
@@ -354,6 +434,68 @@ export const Chatcontainer = forwardRef(
                     userInfo={userInfo}
                     selectedChat={selectedChat}
                 />
+
+                {/* todo: make it's own compliment */}
+
+                <div
+                    className="chat-details-section"
+                    style={{
+                        transform:
+                            showChatDetailsSection || groupSettings
+                                ? "translateX(0%)"
+                                : "translateX(-140%)",
+                    }}
+                >
+                    {showChatDetailsSection ? (
+                        <div className="meow">
+                            <div className="section-1">
+                                <ProfileDetails
+                                    showMeow={showMeow}
+                                    setShowMeow={setShowMeow}
+                                    showChatDetailsSection={
+                                        showChatDetailsSection
+                                    }
+                                    setShowChatDetailsSection={
+                                        setShowChatDetailsSection
+                                    }
+                                    selectedChat={selectedChat}
+                                />
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowMeow(!showMeow);
+                                    }}
+                                    className=""
+                                >
+                                    move next
+                                </button>
+                            </div>
+                            <div
+                                className="section-2 text-purple-400"
+                                style={{
+                                    transform: showMeow
+                                        ? "translate(100%)"
+                                        : "translate(-100%)",
+                                }}
+                            >
+                                i'm div 2
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowMeow(!showMeow);
+                                    }}
+                                    className=""
+                                >
+                                    move next
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="group-settings"></div>
+                    )}
+                </div>
+
+                {/* todo: group */}
             </div>
         );
     }

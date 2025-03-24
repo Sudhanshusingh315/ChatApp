@@ -48,12 +48,29 @@ cron.schedule("* * * * *", async () => {
                 },
             }
         );
+        const accumulatingRecipientId = result?.reduce(function (acc, cur) {
+            if (acc[cur?.recipientId]) {
+                acc[cur?.recipientId].push(cur);
+            } else {
+                acc[cur.recipientId] = [cur];
+            }
+            return acc;
+        }, {});
+
+        console.log("accumulating recipientId", accumulatingRecipientId);
 
         // figure this out
-        for (const recipientId of idsOfRecipients) {
-            let id = getSocketId(recipientId);
 
-            io.to(id).emit("scheduledMessage", result);
+        for (const recipientId of Object.keys(accumulatingRecipientId)) {
+            let id = getSocketId(recipientId);
+            if (id) {
+                io.to(id).emit(
+                    "scheduledMessage",
+                    accumulatingRecipientId[recipientId]
+                );
+            } else {
+                console.log("id does not exits so can not send");
+            }
         }
 
         console.log("updatescheduleArray", updateScheduleArray);

@@ -9,8 +9,8 @@ export default function ChatBoxSkeleton() {
                         key={index}
                         className="flex gap-1 px-4 py-3 bg-primary/60 bg-pink-600 "
                     >
-                        <div className=" rounded-full min-w-4 w-14 h-14 bg-secondary-400 animate-pulse"></div>
-                        <div className="grid gap-1 flex-1">
+                        <div className="rounded-full w-14  aspect-square bg-secondary-400 animate-pulse"></div>
+                        <div className="grid gap-1 ">
                             <p className="bg-secondary-400 rounded-lg w-40 h-6 animate-pulse"></p>
                             <p className="bg-secondary-400 rounded-lg w-60 h-6 animate-pulse"></p>
                         </div>

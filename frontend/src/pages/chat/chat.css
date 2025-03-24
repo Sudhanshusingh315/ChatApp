@@ -65,8 +65,10 @@ img {
         .themes {
             margin-left: auto;
         }
-        .themes:hover,.stories:hover,.settings:hover{
-            padding:4px;
+        .themes:hover,
+        .stories:hover,
+        .settings:hover {
+            padding: 4px;
             background-color: var(--secondary-color-500);
             color: var(--secondary-color);
             border-radius: 50%;
@@ -179,7 +181,7 @@ img {
     display: flex;
     flex-direction: column;
     grid-column: 7/-1;
-    overflow-y: auto;
+    overflow-y: hidden;
 }
 
 .user-info {
@@ -382,6 +384,8 @@ img {
 .group-creation {
     height: 100%;
     width: inherit;
+    background-color: var(--background-color);
+    border: 2px solid var(--secondary-color-500);
     position: absolute;
     inset: 0;
     transform: translateX(-110%);
@@ -396,7 +400,12 @@ img {
         justify-self: start;
         rotate: 45deg;
     }
-
+    .create-group-button {
+        padding-inline: 1rem;
+        padding-block: 0.5rem;
+        border-radius: 100vw;
+        background-color: var(--secondary-color-500);
+    }
     /* todo: change the ui styles after making it work functionally */
 
     div {
@@ -413,7 +422,8 @@ img {
             color: hsl(330, 60%, 30%);
         }
         input {
-            background-color: #3b1e54;
+            background-color: var(--secondary-color-500);
+            color: var(--accent-color);
             border-radius: 100vh;
             padding: 0.725em 0.25em;
         }
@@ -424,6 +434,14 @@ img {
             padding-left: 1rem;
         }
     }
+}
+
+.contact-select {
+    background-color: var(--secondary-color-500);
+    color: var(--accent-color);
+    border-radius: 0.5rem;
+    padding-inline: 0.5rem;
+    padding-block: 1rem;
 }
 
 .globalSearchResults {
@@ -438,8 +456,15 @@ img {
 .messages-category > * {
     background-color: var(--secondary-color-500);
     color: var(--accent-color);
+    cursor: pointer;
+    transition: all 200ms ease;
 }
 
+.messages-category > *:hover {
+    background-color: var(--primary-color);
+    color: var(--accent-color);
+    cursor: pointer;
+}
 .default-chat {
     grid-column: 7/-1;
     min-height: 100vh;

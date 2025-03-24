@@ -11,12 +11,15 @@ const GroupChatSchema = new mongoose.Schema(
         },
         profileImage: {
             type: String,
-        },
+        },  
         lastMessage: {
             messageId: { type: mongoose.Schema.Types.ObjectId, ref: "chat" },
             text: String,
             senderId: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
             timestamp: { type: Number, default: () => new Date().getTime() },
+        },
+        about: {
+            text: String,
         },
     },
     {

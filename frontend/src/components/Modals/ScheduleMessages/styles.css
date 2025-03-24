@@ -1,7 +1,7 @@
 .schedule-container {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -51,12 +51,12 @@
     gap: 1rem;
 }
 
-.picked-date{
+.picked-date {
     background-color: var(--background-color);
-    padding: .25em .875em;
+    padding: 0.25em 0.875em;
     font-family: 1.1rem;
     color: var(--primary-color);
-    border-radius: .875em;
+    border-radius: 0.875em;
 }
 .date-pick-icon {
     font-size: 2rem;

@@ -13,7 +13,6 @@ import {
     getInitMessages,
     getInitMessagesGroup,
 } from "../../features/messages/messageSlice";
-import { createGroup } from "../../api/chat.api";
 import { chatTypes, fileFormats, messageTypes } from "../../constants/contants";
 import { storage } from "../../utils/firebase/firebase";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
@@ -25,6 +24,7 @@ import { SearchContactAPI } from "../../api/search.api";
 import SearchContact from "../../components/SearchContacts/SearchContact";
 import DefaultChatContainer from "../../components/DefaultChatContainer/DefaultChatContainer";
 import ThemeSection from "../../components/ThemeSection/ThemeSection";
+import CreateGroupModal from "../../components/Modals/groupModal/CreateGroupModal";
 export default function Chat() {
     const { socket } = useContext(SocketContext);
     const { userInfo } = useSelector((state) => state.auth);
@@ -60,6 +60,7 @@ export default function Chat() {
     const pdfRef = useRef(null);
     const [showThemeSection, setShowThemeSection] = useState(false);
     // socket init
+    console.log("all chat", chatBox);
     console.log("online users", onlineUsers);
     useEffect(() => {
         if (!socket) return;
@@ -188,6 +189,9 @@ export default function Chat() {
 
             socket.on("scheduledMessage", (updatedMessage) => {
                 console.log("resulted array updated", updatedMessage);
+                setMessages((prev) => {
+                    return [...prev, ...updatedMessage];
+                });
             });
         }
         return () => {
@@ -394,14 +398,18 @@ export default function Chat() {
             }
         });
     };
+
     const handleFormAGroup = async () => {
-        const result = await createGroup(
-            groupCreation,
-            groupName,
-            userInfo?.userId
-        );
-        setGroupName("");
-        console.log("result ", result);
+        console.log("being clicked");
+        setGroupCreationModalControl(true);
+        setGroupCreationWindow(false);
+        // const result = await createGroup(
+        //     groupCreation,
+        //     groupName,
+        //     userInfo?.userId
+        // );
+        // setGroupName("");
+        // console.log("result ", result);
     };
 
     const handleCloseImageWithTextModal = () => {
@@ -503,10 +511,8 @@ export default function Chat() {
                         </div>
                     </>
                 );
-                break;
             case messageTypes.TEXT:
                 return message;
-                break;
             case messageTypes.IMAGE:
                 break;
             case messageTypes.PDF:
@@ -743,9 +749,44 @@ export default function Chat() {
         }
     };
 
+    const handleShowOnlyGroup = () => {
+        setChatBox((prev) => {
+            return prev.filter(
+                ({ chatType }) => chatType === chatTypes.groupChat
+            );
+        });
+    };
+
+    const handleShowAllGroup = () => {
+        setIsChatBoxLoaded(true);
+        (async function () {
+            const { data } = await axios.get(
+                `/api/searchContact/${userInfo?.userId}/myContact`,
+                {
+                    headers: { Authorization: `Bearer ${userInfo?.token}` },
+                }
+            );
+            setIsChatBoxLoaded(false);
+            setChatBox((prev) => {
+                return [
+                    ...data?.data[0]?.contactDetails,
+                    ...data?.data[0]?.myGroups,
+                ];
+            });
+            setLastMessageInChatBox((prev) => {
+                return [...data?.data[0].lastMessage];
+            });
+        })();
+    };
     return (
         <div className="chat-wrapper">
-            <div className="sidebar">
+            <div
+                className="sidebar"
+                onClick={() => {
+                    setGlobalSearchResults([]);
+                    setSearchContactGlobal("");
+                }}
+            >
                 <div className="chat-action">
                     <div className="user-chat--info">
                         <img
@@ -797,10 +838,13 @@ export default function Chat() {
                         </div>
                     ) : (
                         <div className="messages-category">
-                            <p className="">All</p>
-                            <p className="">Unread</p>
+                            <p className="" onClick={handleShowAllGroup}>
+                                All
+                            </p>
+                            <p className="" onClick={handleShowOnlyGroup}>
+                                Groups
+                            </p>
                             <p className="">Favorites</p>
-                            <p className="">Groups</p>
                         </div>
                     )}
                 </div>
@@ -832,7 +876,7 @@ export default function Chat() {
                 {/* todo: make this a component of it's own */}
                 {/* group section */}
                 <div
-                    className="group-creation bg-primary-bg"
+                    className="group-creation "
                     style={
                         groupCreationWindow
                             ? { transform: "translateX(0%)" }
@@ -860,20 +904,12 @@ export default function Chat() {
                                 );
                             })}
                         <input placeholder="search for people" type="text" />
-                        <input
-                            placeholder="Group name"
-                            type="text"
-                            onChange={(e) => {
-                                setGroupName(e.target.value);
-                            }}
-                            value={groupName}
-                        />
                         {/* todo: later this would become a modal, IMPORTANT */}
                         <button
                             onClick={() => {
                                 handleFormAGroup();
                             }}
-                            className="px-4 py-2 bg-pink-800 rounded-full "
+                            className="create-group-button"
                         >
                             Create group
                         </button>
@@ -889,7 +925,7 @@ export default function Chat() {
                             ) : (
                                 <div
                                     key={index}
-                                    className="contact-select bg-secondary-400 rounded-lg px-2 py-4"
+                                    className="contact-select"
                                     onClick={() => {
                                         handleGroupParticipants(contact, index);
                                     }}
@@ -906,6 +942,15 @@ export default function Chat() {
                 <ThemeSection
                     showThemeSection={showThemeSection}
                     setShowThemeSection={setShowThemeSection}
+                />
+
+                <CreateGroupModal
+                    open={groupCreationModalControl}
+                    groupCreation={groupCreation}
+                    groupName={groupName}
+                    userInfo={userInfo}
+                    handleGroupCreation={handleGroupCreation}
+                    onClose={setGroupCreationModalControl}
                 />
             </div>
             {/* chat conponent */}
