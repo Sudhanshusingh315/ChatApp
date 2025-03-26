@@ -1,3 +1,49 @@
-.border{
+.border {
     border: 2px solid red;
+}
+
+.name-dummy {
+    background-color: var(--secondary-color);
+    border-radius: 0.5rem;
+    width: 10rem;
+    height: 1.5rem;
+}
+
+.message-dummy {
+    background-color: var(--secondary-color);
+    border-radius: 0.5rem;
+    width: 15rem;
+    height: 1.5rem;
+}
+
+.message-box-dummy {
+    border-radius: 100%;
+    width: 50px;
+    aspect-ratio: 1/1;
+    background-color: var(--secondary-color-500);
+}
+
+.parent-dummy-box {
+    display: flex;
+    gap: 0.5rem;
+    padding-inline: 1rem;
+    padding-block: 0.75rem;
+    background-color: var(--primary-color);
+}
+
+.date-dummy {
+    background-color: var(--secondary-color-500);
+    border-radius: 0.5rem;
+    min-width: 1rem;
+    width: 5rem;
+    height: 1.5rem;
+}
+
+.new-message-dummy {
+    background-color: var(--secondary-color-500);
+    border-radius: 0.5rem;
+    min-width: 1rem;
+    width: 1rem;
+    height: 1rem;
+    align-self: flex-end;
 }

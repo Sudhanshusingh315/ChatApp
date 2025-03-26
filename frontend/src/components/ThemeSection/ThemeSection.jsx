@@ -36,7 +36,7 @@ export default function ThemeSection({
         },
     ]);
     const goBack = () => {
-        setShowThemeSection(false)
+        setShowThemeSection(false);
     };
     const selectUserTheme = (e, theme) => {
         const { "theme-name": themeName } = theme;
@@ -68,38 +68,6 @@ export default function ThemeSection({
                     </div>
                 );
             })}
-            {/* <div className="theme-section" theme-option="blue">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="red">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="green-gray">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="brown">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="pastal-orange">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="pink">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="coffee">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div>
-            <div className="theme-section" theme-option="yellow">
-                <div className="yours dummy-message-theme"></div>
-                <div className="mine dummy-message-theme"></div>
-            </div> */}
         </div>
     );
 }

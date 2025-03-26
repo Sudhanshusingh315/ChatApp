@@ -1,5 +1,6 @@
 import mongoose, { Types } from "mongoose";
 import { chatTypes, scheduleStatus } from "../constants.config.js";
+import { RemoteSocket } from "socket.io";
 // search all contacts
 
 export const contactPipeline = (userId) => {
@@ -159,6 +160,82 @@ export const getAllPendingScheduledMessages = () => {
                 scheduledAt: { $lte: 1742063400000 },
                 status: scheduleStatus.PENDING,
             },
+        },
+    ];
+};
+
+export const getAllMediaAggreationPipeline = (senderId, recipientId) => {
+    senderId = new mongoose.Types.ObjectId(senderId);
+    recipientId = new mongoose.Types.ObjectId(recipientId);
+
+    return [
+        {
+            $match: {
+                ...(senderId && { senderId: { $in: [senderId, recipientId] } }),
+                ...(recipientId && {
+                    recipientId: {
+                        $in: [senderId, recipientId],
+                    },
+                }),
+                messageType: { $nin: ["text"] },
+            },
+        },
+    ];
+};
+
+export const getGroupInfoPipeline = (groupId) => {
+    let id = new mongoose.Types.ObjectId(groupId);
+    return [
+        {
+            $match: {
+                _id: id,
+            },
+        },
+        // look up the admin
+        {
+            $lookup: {
+                from: "users",
+                localField: "admin",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $set: {
+                            id: "$_id",
+                        },
+                    },
+                    {
+                        $unset: ["_id", "__v"],
+                    },
+                ],
+                as: "admin",
+            },
+        },
+        {
+            $set: {
+                admin: { $first: "$admin" },
+            },
+        },
+        // loop up the participants
+        {
+            $lookup: {
+                from: "users",
+                localField: "participants",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $set: {
+                            id: "$_id",
+                        },
+                    },
+                    {
+                        $unset: ["_id", "__v", "contacts", "groups"],
+                    },
+                ],
+                as: "participants",
+            },
+        },
+        {
+            $unset: ["_id", "__v"],
         },
     ];
 };

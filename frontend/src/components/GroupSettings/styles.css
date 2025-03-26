@@ -1,0 +1,49 @@
+.group-setting-container {
+    width: 100%;
+    padding: 0.875em;
+    display: grid;
+    gap: 0.875rem;
+}
+
+.group-image-container {
+    width: 80%;
+    margin-inline: auto;
+    border-radius: 50%;
+    aspect-ratio: 1/1;
+    border: 2px solid var(--primary-color);
+    img {
+        display: block;
+        max-width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+}
+
+.groupName {
+    font-size: 2.5rem;
+    text-align: center;
+    font-weight: bold;
+    background: linear-gradient(
+        var(--secondary-color),
+        var(--secondary-color-500)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.group-participants {
+    width: 100%;
+    display: grid;
+    gap: 0.875em;
+}
+
+.admin-badge {
+    width: max-content;
+    padding: 0.25em;
+    background-color: var(--secondary-color-500);
+    color: var(--accent-color);
+    font-size: clamp(12px, 1vw, 20px);
+    border-radius: 0.5em;
+}

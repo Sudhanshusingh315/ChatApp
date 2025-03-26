@@ -18,6 +18,8 @@ import ProfileDetails from "../ProfileDetails/ProfileDetails";
 import { CiSettings } from "react-icons/ci";
 
 import "./styles.css";
+import SectionDetails from "../sectionDetails/SectionDetails";
+import GroupSettings from "../GroupSettings/GroupSettings";
 
 export const Chatcontainer = forwardRef(
     (
@@ -205,12 +207,14 @@ export const Chatcontainer = forwardRef(
                             >
                                 Scheduled Messages
                             </div>
-                            <div
-                                onClick={handleshowChatDetailsSction}
-                                className="flex justify-start items-center gap-2"
-                            >
-                                Chat Details <CiCircleInfo />
-                            </div>
+                            {selectedChat?.chatType !== chatTypes.groupChat && (
+                                <div
+                                    onClick={handleshowChatDetailsSction}
+                                    className="flex justify-start items-center gap-2"
+                                >
+                                    Chat Details <CiCircleInfo />
+                                </div>
+                            )}
                             {selectedChat?.chatType === chatTypes.groupChat && (
                                 <div
                                     className="flex justify-start items-center gap-2"
@@ -471,27 +475,44 @@ export const Chatcontainer = forwardRef(
                                 </button>
                             </div>
                             <div
-                                className="section-2 text-purple-400"
+                                className="section-2 text-purple-400 p-4"
                                 style={{
                                     transform: showMeow
                                         ? "translate(100%)"
                                         : "translate(-100%)",
                                 }}
                             >
-                                i'm div 2
+                                {/* <div>
+                                    <h1 className="media-section-title">
+                                        Chat Media
+                                    </h1>
+                                    <div className="media-section-container">
+                                        {new Array(5).fill(0).map(() => {
+                                            return (
+                                            <div className="box-test">
+                                                    hello
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div> */}
+                                <SectionDetails
+                                    selectedChat={selectedChat}
+                                    userInfo={userInfo}
+                                />
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowMeow(!showMeow);
                                     }}
-                                    className=""
+                                    className="media-section-button"
                                 >
-                                    move next
+                                    Move Back
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="group-settings"></div>
+                        <GroupSettings selectedChat={selectedChat} />
                     )}
                 </div>
 

@@ -26,6 +26,8 @@ img {
     background-color: var(--background-color);
     margin-inline: auto;
     color: var(--accent-color);
+    overflow: clip;
+    border: 1px solid var(--primary-color);
 }
 
 .sidebar {

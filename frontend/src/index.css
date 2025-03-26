@@ -84,14 +84,14 @@ h6 {
 
     /* theme section */
     --default-color: var(--primary-color);
-    --blue-color-scheme: #393e46;
-    --red-color-scheme: #a04747;
+    --blue-color-scheme: blue;
+    --red-color-scheme: lightcoral;
     --green-gray-color-scheme: #61876e;
-    --brown-color-scheme: #af8f6f;
-    --pastal-orange-scheme: #481e14;
+    --brown-color-scheme: brown;
+    --pastal-orange-scheme: orange;
     --pink-scheme: #c1a3a3;
     --coffee-scheme: #d6c0b3;
-    --yellow-scheme: #393e46;
+    --yellow-scheme: yellow;
 }
 
 body {

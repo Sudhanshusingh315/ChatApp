@@ -5,18 +5,15 @@ export default function ChatBoxSkeleton() {
         <div>
             {NEW_ARRAY?.map((_, index) => {
                 return (
-                    <div
-                        key={index}
-                        className="flex gap-1 px-4 py-3 bg-primary/60 bg-pink-600 "
-                    >
-                        <div className="rounded-full w-14  aspect-square bg-secondary-400 animate-pulse"></div>
+                    <div key={index} className="parent-dummy-box">
+                        <div className="message-box-dummy animate-pulse"></div>
                         <div className="grid gap-1 ">
-                            <p className="bg-secondary-400 rounded-lg w-40 h-6 animate-pulse"></p>
-                            <p className="bg-secondary-400 rounded-lg w-60 h-6 animate-pulse"></p>
+                            <p className="name-dummy animate-pulse"></p>
+                            <p className="message-dummy animate-pulse"></p>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className="bg-secondary-400 rounded-lg  min-w-4 w-20 h-6 animate-pulse"></p>
-                            <p className="bg-secondary-400 rounded-full w-4 h-4 self-end animate-pulse"></p>
+                            <p className="date-dummy animate-pulse"></p>
+                            <p className="new-message-dummy animate-pulse"></p>
                         </div>
                     </div>
                 );

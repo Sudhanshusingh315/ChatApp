@@ -1,14 +1,17 @@
 import { Schema, Types } from "mongoose";
 import { Chat } from "../models/chatModel.js";
 import {
+    getAllMediaAggreationPipeline,
     getAllMessagesGroup,
     getAllMessagesOneOnOne,
+    getGroupInfoPipeline,
     updateMessagesOneOneOneFilter,
 } from "../aggregation/aggregation.pipeline.js";
 import { chatTypes } from "../constants.config.js";
 import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
 import { ScheduledMessage } from "../models/schedule.js";
+import { GroupChat } from "../models/groupModel.js";
 
 // get the messages
 // post and save the messages
@@ -252,7 +255,7 @@ export const scheduledMessage = async (req, res) => {
             created_at,
             messageType,
         });
-        console.log("req body",req.body);
+        console.log("req body", req.body);
 
         if (!scheduledMessage) {
             return res.status(404).json({
@@ -272,6 +275,58 @@ export const scheduledMessage = async (req, res) => {
         return res.status(401).json({
             success: false,
             error: err.message,
+        });
+    }
+};
+
+export const getAllMediaBetweenTwoPeople = async (req, res) => {
+    const { senderId, recipientId } = req.body;
+    try {
+        if (!senderId || !recipientId) {
+            throw new Error("data in invalid");
+        }
+
+        const allMedia = await Chat.aggregate(
+            getAllMediaAggreationPipeline(senderId, recipientId)
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: "all media fetched",
+            data: allMedia,
+        });
+    } catch (error) {
+        console.log("error", error);
+
+        return res.status(401).json({
+            success: false,
+            message: "Something happened, try again",
+        });
+    }
+};
+
+export const getGroupDetails = async (req, res) => {
+    let { groupId } = req.body;
+    try {
+        if (!groupId) {
+            throw new Error("incorrect group details");
+        }
+        const groupInfo = await GroupChat.aggregate(
+            getGroupInfoPipeline(groupId)
+        );
+        if (!groupInfo) {
+            throw new Error("Something went wrong");
+        }
+        return res.status(201).json({
+            success: true,
+            message: "Group info fetched successfully",
+            data: groupInfo,
+        });
+    } catch (error) {
+        console.log("error", error);
+        return res.status(401).json({
+            success: false,
+            message: error.message,
         });
     }
 };
