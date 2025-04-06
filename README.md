@@ -26,6 +26,7 @@ https://github.com/user-attachments/assets/0248a672-35d6-42fa-80e9-4b31e5a6bca6
   <li>Schedule Messages</li>
   <li>Pdf files</li>
 </ul>
+user can view and download these media as well
 
 <h2>Schedule Messages</h2>
 
