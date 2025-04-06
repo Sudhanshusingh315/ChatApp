@@ -3,11 +3,13 @@
 import mongoose from "mongoose";
 import { GroupChat } from "../models/groupModel.js";
 import { User } from "../models/userModel.js";
+import { chatTypes } from "../constants.config.js";
 
 export const createGroup = async (req, res) => {
     try {
         const { adminId } = req.params;
-        let { participants, groupName } = req.body;
+        let { participants, groupName, groupAboutSection, groupImage } =
+            req.body;
         participants = [...participants, { _id: adminId }];
         console.log("participants are", participants);
         if (participants?.length <= 2) {
@@ -20,8 +22,10 @@ export const createGroup = async (req, res) => {
             groupName,
             participants,
             admin: new mongoose.Types.ObjectId(adminId),
+            profileImage: groupImage,
+            about: groupAboutSection,
         });
-        
+
         if (roomId) {
             // update all the users's group field,
             await User.updateMany(
@@ -32,15 +36,35 @@ export const createGroup = async (req, res) => {
                 // update fields
                 {
                     $push: {
-                        "groups": roomId,
+                        groups: roomId,
                     },
-                },
+                }
             );
-            console.log("user document updated successfully")
+            const {
+                _id,
+                groupName,
+                participants,
+                admin,
+                lastMessage,
+                createdAt,
+                updatedAt,
+                profileImage,
+            } = roomId;
+            console.log("user document updated successfully");
             return res.status(201).json({
                 success: true,
                 message: "Group Created Successfully!!!",
-                roomId: roomId?._id,
+                data: {
+                    _id,
+                    groupName,
+                    participants,
+                    admin,
+                    lastMessage,
+                    createdAt,
+                    updatedAt,
+                    profileImage,
+                    chatType: chatTypes.groupChat,
+                },
             });
         } else {
             return res.status(422).json({

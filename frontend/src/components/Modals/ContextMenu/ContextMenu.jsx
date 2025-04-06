@@ -7,6 +7,7 @@ export default function ContextMenu({
     setMessages,
     messages,
     position,
+    setShowContextMenu,
 }) {
     const { socket } = useContext(SocketContext);
     const handleDeleteMessage = (e) => {
@@ -14,8 +15,10 @@ export default function ContextMenu({
         setMessages((prev) => {
             return prev.filter((element) => element?._id !== messageInfo?._id);
         });
+
         // write the logic for deleting message.
         socket.emit("deleteMessage", messageInfo);
+        setShowContextMenu(false);
     };
     return (
         open && (

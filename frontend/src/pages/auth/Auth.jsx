@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router";
-import {useDispatch,useSelector} from "react-redux"; 
+import { useDispatch, useSelector } from "react-redux";
 import { authLogin } from "../../features/auth/authSlice";
 
 export default function Auth() {
@@ -13,23 +13,49 @@ export default function Auth() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const handleGuestUserOne = async () => {
+        // only for login
+        let email = import.meta.env.VITE_USER1_EMAIL;
+        let password = import.meta.env.VITE_USER1_PASSWORD;
+        const response = await dispatch(authLogin({ email, password }));
+        console.log("response login", response);
+        if (!response?.payload?.profileSetup) {
+            // todo: do the profile setup ui
+            navigate("/profile");
+        } else {
+            console.log("navigate to chat");
+            navigate("/");
+        }
+    };
 
+    const handleGuestUserTwo = async () => {
+        // only for login
+        let email = import.meta.env.VITE_USER2_EMAIL;
+        let password = import.meta.env.VITE_USER2_PASSWORD;
+        const response = await dispatch(authLogin({ email, password }));
+        console.log("response login", response);
+        if (!response?.payload?.profileSetup) {
+            // todo: do the profile setup ui
+            navigate("/profile");
+        } else {
+            console.log("navigate to chat");
+            navigate("/");
+        }
+    };
 
-    
     const handleLogin = async () => {
         // todo : make the toast notficication here.
         // todo: remove unnecessary console logs.
         // todo: Enter makes the user login
 
-        const response = await dispatch(authLogin({email,password}))
-        console.log("response login",response);
-        if(!response?.payload?.profileSetup){
+        const response = await dispatch(authLogin({ email, password }));
+        console.log("response login", response);
+        if (!response?.payload?.profileSetup) {
             // todo: do the profile setup ui
-            navigate('/profile');
-        }
-        else{
-            console.log("navigate to chat")
-            navigate('/');
+            navigate("/profile");
+        } else {
+            console.log("navigate to chat");
+            navigate("/");
         }
     };
 
@@ -41,7 +67,7 @@ export default function Auth() {
             console.log("error password and confirm password is not the same");
             return;
         }
-        const response = dispatch() 
+        const response = dispatch();
         console.log(result);
     };
 
@@ -53,10 +79,12 @@ export default function Auth() {
         setLogin((prev) => !prev);
     };
     return (
-        <div className="auth-container grid place-content-center min-h-dvh text-center">
+        <div className="auth-container grid place-content-center text-white min-h-dvh text-center">
             <div className="px-12 grid gap-6">
                 <div className="grid gap-2">
-                    <h1 className="text-4xl ">Welcome</h1>
+                    <h1 className="text-4xl font-semibold uppercase">
+                        Welcome
+                    </h1>
                     <p>
                         fill in the details to get started with the best chat
                         application
@@ -64,10 +92,10 @@ export default function Auth() {
                 </div>
                 {login ? (
                     <>
-                        <div className="grid gap-4">
+                        <div className="grid gap-4 bg-pink-700 px-8 py-4 rounded-lg">
                             <input
                                 placeholder="email"
-                                className="p-2 rounded-md border-gray-400 border-2"
+                                className="p-2 rounded-md border-gray-400 border-2 uppercase placeholder:font-bold "
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
@@ -76,23 +104,35 @@ export default function Auth() {
                             />
                             <input
                                 placeholder="password"
-                                className="p-2 rounded-md border-gray-400 border-2"
+                                className="p-2 rounded-md border-gray-400 border-2 uppercase placeholder:font-bold"
                                 type="password"
                                 onChange={(e) => {
                                     setPassword(e.target.value);
                                 }}
                             />
                             <button
-                                className="justify-self-center rounded-md text-accent px-7 py-2 bg-primary cursor-pointer"
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
                                 onClick={handleLogin}
                             >
                                 Login
                             </button>
+                            <button
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
+                                onClick={handleGuestUserOne}
+                            >
+                                Guest User 1
+                            </button>
+                            <button
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
+                                onClick={handleGuestUserTwo}
+                            >
+                                Guest User 2
+                            </button>
                         </div>
-                        <p className="my-2">
+                        <p className="my-2 text-white">
                             Don't have an account?{" "}
                             <button
-                                className="justify-self-center rounded-md text-accent px-4 py-1 bg-primary cursor-pointer"
+                                className="justify-self-center rounded-md  outline-none text-accent px-4 text-xl py-2 bg-primary cursor-pointer"
                                 onClick={handleSwitchAuthMethod}
                             >
                                 Sign up
@@ -101,10 +141,10 @@ export default function Auth() {
                     </>
                 ) : (
                     <>
-                        <div className="grid gap-4">
+                        <div className="grid gap-4 bg-pink-700 px-8 py-4 rounded-lg">
                             <input
                                 placeholder="email"
-                                className="p-2 rounded-md border-gray-400 border-2"
+                                className="p-2 rounded-md border-gray-400 border-2 uppercase placeholder:font-bold "
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
@@ -112,7 +152,7 @@ export default function Auth() {
                             />
                             <input
                                 placeholder="password"
-                                className="p-2 rounded-md border-gray-400 border-2"
+                                className="p-2 rounded-md border-gray-400 border-2 uppercase placeholder:font-bold "
                                 type="password"
                                 onChange={(e) => {
                                     setPassword(e.target.value);
@@ -120,23 +160,35 @@ export default function Auth() {
                             />
                             <input
                                 placeholder="confirm password"
-                                className="p-2 rounded-md border-gray-400 border-2"
+                                className="p-2 rounded-md border-gray-400 border-2 uppercase placeholder:font-bold "
                                 type="password"
                                 onChange={(e) => {
                                     setConfirmPassword(e.target.value);
                                 }}
                             />
                             <button
-                                className="justify-self-center rounded-md text-accent px-7 py-2 bg-primary cursor-pointer "
                                 onClick={handleSignup}
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
                             >
                                 Sign Up
+                            </button>
+                            <button
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
+                                onClick={handleGuestUserOne}
+                            >
+                                Guest User 1
+                            </button>
+                            <button
+                                className="justify-self-center rounded-md text-accent font-bold  text-xl outline-none px-8 py-4 bg-primary cursor-pointer"
+                                onClick={handleGuestUserTwo}
+                            >
+                                Guest User 2
                             </button>
                         </div>
                         <p className="my-2">
                             Already have an account?{" "}
                             <button
-                                className="justify-self-center rounded-md text-accent px-4 py-1 bg-primary cursor-pointer"
+                                className="justify-self-center rounded-md  outline-none text-accent px-4 text-xl py-2 bg-primary cursor-pointer"
                                 onClick={handleSwitchAuthMethod}
                             >
                                 Login

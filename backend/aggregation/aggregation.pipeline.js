@@ -1,6 +1,5 @@
 import mongoose, { Types } from "mongoose";
 import { chatTypes, scheduleStatus } from "../constants.config.js";
-import { RemoteSocket } from "socket.io";
 // search all contacts
 
 export const contactPipeline = (userId) => {
@@ -164,7 +163,11 @@ export const getAllPendingScheduledMessages = () => {
     ];
 };
 
-export const getAllMediaAggreationPipeline = (senderId, recipientId) => {
+export const getAllMediaAggreationPipeline = (
+    senderId,
+    recipientId,
+    groupId
+) => {
     senderId = new mongoose.Types.ObjectId(senderId);
     recipientId = new mongoose.Types.ObjectId(recipientId);
 
@@ -177,6 +180,7 @@ export const getAllMediaAggreationPipeline = (senderId, recipientId) => {
                         $in: [senderId, recipientId],
                     },
                 }),
+                ...(groupId && { roomId: groupId }),
                 messageType: { $nin: ["text"] },
             },
         },
@@ -236,6 +240,21 @@ export const getGroupInfoPipeline = (groupId) => {
         },
         {
             $unset: ["_id", "__v"],
+        },
+    ];
+};
+
+export const getScheduledMessagesBetweenTwoPeople = (senderId, recipientId) => {
+    senderId = new mongoose.Types.ObjectId(senderId);
+    recipientId = new mongoose.Types.ObjectId(recipientId);
+
+    return [
+        {
+            $match: {
+                senderId,
+                recipientId,
+                status: { $ne: "sent" },
+            },
         },
     ];
 };

@@ -253,9 +253,9 @@
 
 .meow {
     display: flex;
-    background-color: rebeccapurple;
+    background-color: var(--primary-color);
     height: 100%;
-    color: #333;
+    color:var(--accent-color); 
     overflow: hidden;
 }
 

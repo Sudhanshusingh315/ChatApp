@@ -57,8 +57,6 @@ cron.schedule("* * * * *", async () => {
             return acc;
         }, {});
 
-        console.log("accumulating recipientId", accumulatingRecipientId);
-
         // figure this out
 
         for (const recipientId of Object.keys(accumulatingRecipientId)) {
@@ -73,8 +71,6 @@ cron.schedule("* * * * *", async () => {
             }
         }
 
-        console.log("updatescheduleArray", updateScheduleArray);
-        console.log("results", JSON.stringify(result));
         // group
     } catch (error) {
         console.log("error", error);

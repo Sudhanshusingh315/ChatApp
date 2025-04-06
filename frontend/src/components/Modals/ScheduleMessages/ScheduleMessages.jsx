@@ -7,7 +7,6 @@ import { MdScheduleSend } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
 import { messageTypes, scheduleStatus } from "../../../constants/contants";
 import { sendScheduledAt } from "../../../api/chat.api";
-import { ConnectionStates } from "mongoose";
 
 export default function ScheduleMessages({
     open,

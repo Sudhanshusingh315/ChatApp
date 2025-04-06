@@ -20,6 +20,7 @@ import { CiSettings } from "react-icons/ci";
 import "./styles.css";
 import SectionDetails from "../sectionDetails/SectionDetails";
 import GroupSettings from "../GroupSettings/GroupSettings";
+import ScheduleMessagesList from "../Modals/ScheduleMessages/ScheduleMessagesPending";
 
 export const Chatcontainer = forwardRef(
     (
@@ -64,6 +65,8 @@ export const Chatcontainer = forwardRef(
         const [position, setPosition] = useState();
         const [chatHeaderPosition, setChatHeaderPosition] = useState();
         const [showScheduleMessage, setShowScheduledMessage] = useState(false);
+        const [showScheduleMessageSend, setShowScheduledMessageSend] =
+            useState(false);
         const [showHeaderContextMenu, setShowHeaderContextMenu] =
             useState(false);
         const [showChatDetailsSection, setShowChatDetailsSection] =
@@ -72,6 +75,14 @@ export const Chatcontainer = forwardRef(
         const chatHeaderSectionRef = useRef(null);
         const [showMeow, setShowMeow] = useState(true);
         const [groupSettings, setGroupSettings] = useState(false);
+        const bottomScroll = useRef();
+
+        useEffect(() => {
+            console.log("scrolling becuase messages change");
+            if (bottomScroll.current) {
+                bottomScroll.current.scrollIntoView();
+            }
+        }, [messages]);
 
         const handleshowChatDetailsSction = (e) => {
             e.stopPropagation();
@@ -144,6 +155,15 @@ export const Chatcontainer = forwardRef(
         const handleScheduleMessage = () => {
             setShowScheduledMessage(true);
         };
+
+        const handleScheduleMessageSend = () => {
+            setShowScheduledMessageSend(true);
+        };
+
+        const handleCloseScheduleMessageSend = () => {
+            setShowScheduledMessageSend(false);
+        };
+
         const handleCloseScheduleMessage = () => {
             setShowScheduledMessage(false);
         };
@@ -234,83 +254,88 @@ export const Chatcontainer = forwardRef(
                     {isChatLoading ? (
                         <ChatcontainerSkeleton />
                     ) : (
-                        <div
-                            ref={scrollableDiv}
-                            className="chat-talking-section"
-                            onClick={handleCloseContextMenu}
-                        >
-                            {messages?.map(
-                                (
-                                    {
-                                        _id,
-                                        recipientId,
-                                        senderId,
-                                        message,
-                                        messageType,
-                                        imageWithText,
-                                        pdfWithText,
-                                        contactAsAMessage,
-                                        isSeen,
-                                    },
-                                    index
-                                ) => {
-                                    return (
-                                        <div
-                                            // todo: can we do a better index than this?
-                                            onContextMenu={(e) => {
-                                                handleContextMenu(e, {
-                                                    _id,
-                                                    recipientId,
-                                                    senderId,
-                                                });
-                                            }}
-                                            key={index}
-                                            className={
-                                                userInfo?.userId === senderId
-                                                    ? "owner"
-                                                    : "reciever"
-                                            }
-                                        >
-                                            {/* {selectedChat?._id !==
+                        <>
+                            <div
+                                ref={scrollableDiv}
+                                className="chat-talking-section"
+                                onClick={handleCloseContextMenu}
+                            >
+                                {messages?.map(
+                                    (
+                                        {
+                                            _id,
+                                            recipientId,
+                                            senderId,
+                                            message,
+                                            messageType,
+                                            imageWithText,
+                                            pdfWithText,
+                                            contactAsAMessage,
+                                            isSeen,
+                                        },
+                                        index
+                                    ) => {
+                                        return (
+                                            <div
+                                                // todo: can we do a better index than this?
+                                                onContextMenu={(e) => {
+                                                    handleContextMenu(e, {
+                                                        _id,
+                                                        recipientId,
+                                                        senderId,
+                                                    });
+                                                }}
+                                                key={index}
+                                                className={
+                                                    userInfo?.userId ===
+                                                    senderId
+                                                        ? "owner"
+                                                        : "reciever"
+                                                }
+                                            >
+                                                {/* {selectedChat?._id !==
                                                 recipientId && (
                                                 <p className="name-message-top">
                                                     {selectedChat?.firstName}{" "}
                                                     {selectedChat?.lastName}
                                                 </p>
                                             )} */}
-                                            {renderMessage(
-                                                messageType,
-                                                message,
-                                                imageWithText,
-                                                pdfWithText,
-                                                contactAsAMessage,
-                                                isSeen
-                                            )}
-                                            {messageType ===
-                                                messageTypes.TEXT &&
-                                                userInfo?.userId ===
-                                                    senderId && (
-                                                    <div className="check-box">
-                                                        {isSeen ? (
-                                                            <BsCheck2All color="blue" />
-                                                        ) : (
-                                                            <BsCheck2 />
-                                                        )}
-                                                    </div>
+                                                {renderMessage(
+                                                    messageType,
+                                                    message,
+                                                    imageWithText,
+                                                    pdfWithText,
+                                                    contactAsAMessage,
+                                                    isSeen
                                                 )}
-                                        </div>
-                                    );
-                                }
-                            )}
+                                                {messageType ===
+                                                    messageTypes.TEXT &&
+                                                    userInfo?.userId ===
+                                                        senderId && (
+                                                        <div className="check-box">
+                                                            {isSeen ? (
+                                                                <BsCheck2All color="blue" />
+                                                            ) : (
+                                                                <BsCheck2 />
+                                                            )}
+                                                        </div>
+                                                    )}
+                                            </div>
+                                        );
+                                    }
+                                )}
 
-                            <ContextMenu
-                                open={showContextMenu}
-                                messageInfo={contextMenuMessageInfo}
-                                messages={messages}
-                                setMessages={setMessages}
-                                position={position}
-                            />
-                        </div>
+                                <div ref={bottomScroll}></div>
+                                <ContextMenu
+                                    open={showContextMenu}
+                                    setShowContextMenu={setShowContextMenu}
+                                    messageInfo={contextMenuMessageInfo}
+                                    messages={messages}
+                                    setMessages={setMessages}
+                                    position={position}
+                                />
+                            </div>
+                        </>
                     )}
                 </div>
 
@@ -368,7 +393,7 @@ export const Chatcontainer = forwardRef(
                             <p
                                 className="li-contact"
                                 mediatype="schedule"
-                                onClick={handleScheduleMessage}
+                                onClick={handleScheduleMessageSend}
                             >
                                 Schedule Message
                             </p>
@@ -431,8 +456,13 @@ export const Chatcontainer = forwardRef(
                     media={showViewMediaContent}
                     onClose={handleCloseViewMediaControl}
                 />
-
                 <ScheduleMessages
+                    open={showScheduleMessageSend}
+                    onClose={handleCloseScheduleMessageSend}
+                    userInfo={userInfo}
+                    selectedChat={selectedChat}
+                />
+                <ScheduleMessagesList
                     open={showScheduleMessage}
                     onClose={handleCloseScheduleMessage}
                     userInfo={userInfo}

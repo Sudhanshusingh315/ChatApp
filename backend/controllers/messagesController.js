@@ -5,6 +5,7 @@ import {
     getAllMessagesGroup,
     getAllMessagesOneOnOne,
     getGroupInfoPipeline,
+    getScheduledMessagesBetweenTwoPeople,
     updateMessagesOneOneOneFilter,
 } from "../aggregation/aggregation.pipeline.js";
 import { chatTypes } from "../constants.config.js";
@@ -12,6 +13,7 @@ import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
 import { ScheduledMessage } from "../models/schedule.js";
 import { GroupChat } from "../models/groupModel.js";
+import { json } from "express";
 
 // get the messages
 // post and save the messages
@@ -22,7 +24,6 @@ import { GroupChat } from "../models/groupModel.js";
 // tood: add validatoin to all the apis
 
 export const getAllMessages = async (req, res) => {
-    console.log("getAllMessages being called");
     try {
         // todo: one optimization that i can do here is to add another additional fiter to the updateter function and will only update less documents.
 
@@ -52,7 +53,6 @@ export const getAllMessages = async (req, res) => {
             }
         }
     } catch (err) {
-        console.log("err", { err });
         return res.status(404).json({
             success: false,
             error: { err },
@@ -63,7 +63,6 @@ export const getAllMessages = async (req, res) => {
 
 export const saveMessages = async (req, res) => {
     try {
-        console.log("hitting the api");
         const { senderId, recipientId } = req.params;
         const { message, messageType, createdAt, updatedAt } = req.body;
 
@@ -82,7 +81,6 @@ export const saveMessages = async (req, res) => {
                 ...(createdAt && { createdAt }),
                 ...(updatedAt && { updatedAt }),
             });
-            console.log("savedMessage", saveMessage);
             if (saveMessages) {
                 return res.status(201).json({
                     success: true,
@@ -174,13 +172,11 @@ export const saveMessagesWithSocketIo = async (messageData) => {
 
 export const getAllGroupMessages = async (req, res) => {
     try {
-        console.log("group messages api");
         const { roomId } = req.params;
 
         if (!roomId) {
             throw new Error("No room id was found");
         }
-        console.log("group room id is ", roomId);
         const getMessages = await Chat.aggregate(getAllMessagesGroup(roomId));
 
         if (getMessages) {
@@ -202,10 +198,7 @@ export const getAllGroupMessages = async (req, res) => {
 export const lastActive = async ({ userId, lastActive }) => {
     try {
         if (userId) {
-            console.log("userId of the disconnected is", userId);
             const id = new mongoose.Types.ObjectId(userId);
-            console.log("new Id is", id);
-            console.log(`blob ${id} lastactive ${lastActive}`);
             const user = await User.updateOne(
                 {
                     _id: id,
@@ -214,8 +207,6 @@ export const lastActive = async ({ userId, lastActive }) => {
                     lastSeen: lastActive,
                 }
             );
-
-            console.log(user);
         }
     } catch (err) {
         console.log("err", err);
@@ -275,6 +266,31 @@ export const scheduledMessage = async (req, res) => {
         return res.status(401).json({
             success: false,
             error: err.message,
+        });
+    }
+};
+
+export const scheduledMessagesBetweenPeople = async (req, res) => {
+    const { senderId, recipientId } = req.body;
+    try {
+        if (!senderId || !recipientId) {
+            throw new Error("Invalid credentials");
+        }
+
+        const ScheduledMessages = await ScheduledMessage.aggregate(
+            getScheduledMessagesBetweenTwoPeople(senderId, recipientId)
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Scheduled messages are fetched",
+            data: ScheduledMessages,
+        });
+    } catch (error) {
+        console.log("error", error);
+        return res.status(401).json({
+            success: false,
+            message: error.message,
         });
     }
 };

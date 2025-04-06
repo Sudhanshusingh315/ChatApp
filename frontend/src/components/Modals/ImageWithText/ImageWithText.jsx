@@ -15,8 +15,8 @@ export default function ImageWithText({
     const handleSend = (e) => {
         const message = {
             text: textWithImage,
-            ...(image && {image}),
-            ...(pdf && {pdf}),
+            ...(image && { image }),
+            ...(pdf && { pdf }),
         };
         console.log(
             `message is ${JSON.stringify(
@@ -26,6 +26,7 @@ export default function ImageWithText({
             )} and type of messgae is ${typeof message}, and normal message ${typeof "hellow catto"}`
         );
         sendMessage(message);
+        setTextWithImage("");
         onClose();
     };
 
@@ -45,18 +46,34 @@ export default function ImageWithText({
                         <p className="go-back" onClick={onClose}>
                             <RxCrossCircled />
                         </p>
-                        <p className="image-preview">Image Preview</p>
+                        <p className="image-preview">Media Preview</p>
                         <p className="download-button">
                             <FaDownload />
                         </p>
                     </div>
                     <div className="images-section">
                         {!image && !pdf ? (
-                            <p className="default animate-pulse">Upload the div with shimmer effect</p>
+                            <p className="default animate-pulse text-center my-4"></p>
                         ) : (
                             <>
-                                <div className="justify-self-center object-cover">{image && <img className="max-h-80 object-cover" src={image} alt="" />}</div>
-                                <div className="justify-self-center object-cover">{pdf && <img className="w-52 h-52" src="https://static.vecteezy.com/system/resources/previews/022/086/609/non_2x/file-type-icons-format-and-extension-of-documents-pdf-icon-free-vector.jpg" alt="pdf file"/>}</div>
+                                <div className="justify-self-center object-cover">
+                                    {image && (
+                                        <img
+                                            className="max-h-80 object-cover"
+                                            src={image}
+                                            alt=""
+                                        />
+                                    )}
+                                </div>
+                                <div className="justify-self-center object-cover">
+                                    {pdf && (
+                                        <img
+                                            className="w-52 h-52"
+                                            src="https://static.vecteezy.com/system/resources/previews/022/086/609/non_2x/file-type-icons-format-and-extension-of-documents-pdf-icon-free-vector.jpg"
+                                            alt="pdf file"
+                                        />
+                                    )}
+                                </div>
                             </>
                         )}
                     </div>
@@ -75,7 +92,9 @@ export default function ImageWithText({
                         </p>
                         <p
                             className={`send-button ${
-                                image || pdf ? "cursor-pointer" : "cursor-not-allowed"
+                                image || pdf
+                                    ? "cursor-pointer"
+                                    : "cursor-not-allowed"
                             }`}
                             onClick={() => {
                                 image || pdf ? handleSend() : "";

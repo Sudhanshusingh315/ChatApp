@@ -11,6 +11,8 @@ export default function CreateGroupModal({
     handleGroupCreation,
     groupCreation,
     userInfo,
+    setChatBox,
+    setGroupCreationModalControl,
 }) {
     const [groupImage, setGroupImage] = useState("");
     const [groupName, setGroupName] = useState("");
@@ -21,7 +23,7 @@ export default function CreateGroupModal({
     const [isUploading, setIsUploading] = useState(false);
     const [finalGroupParticipants, setFinalGroupParticipants] =
         useState(groupCreation);
-
+    console.log("group creationg", groupCreation);
     useEffect(() => {
         if (!groupCreation) return;
         setFinalGroupParticipants(groupCreation);
@@ -33,17 +35,18 @@ export default function CreateGroupModal({
         setGroupImage("");
         setGroupName("");
         setGroupSectionAbout("");
-        groupProfileImageRef.current = null;
         setGroupProfileImagePresent(null);
         setIsUploading(false);
     };
     const handleGroupImageInputRef = (e) => {
+        console.log("groupimage input red");
         e.stopPropagation();
         if (!groupProfileImageRef.current) return;
 
         groupProfileImageRef.current.click();
     };
     const handleUploadGroupImagesToFireBase = (e) => {
+        console.log("clicked the upload button");
         console.log("image", e.target.files);
         if (!e.target.files) return;
         const file = e.target?.files[0];
@@ -102,13 +105,22 @@ export default function CreateGroupModal({
     };
     const handleFormGroup = async () => {
         const result = await createGroup(
-            groupCreation,
+            groupCreation, // participants
             groupName,
+            groupImage,
             groupSectionAbout,
             userInfo?.userId
         );
+
         setGroupName("");
-        console.log("result ", result);
+        setGroupImage("");
+        setGroupSectionAbout("");
+        setGroupCreationModalControl(false);
+        console.log("result data", result);
+        console.log("coming from here");
+        setChatBox((prev) => {
+            return [...prev, result?.data];
+        });
     };
 
     const removeFromFinalGroupCreation = (e, participantIndex) => {
@@ -176,7 +188,7 @@ export default function CreateGroupModal({
                 type="text"
                 placeholder="Group name"
                 value={groupName}
-                onChange={() => {
+                onChange={(e) => {
                     setGroupName(e.target.value);
                 }}
             />
@@ -185,7 +197,7 @@ export default function CreateGroupModal({
                 type="text"
                 placeholder="About"
                 value={groupSectionAbout}
-                onChange={() => {
+                onChange={(e) => {
                     setGroupSectionAbout(e.target.value);
                 }}
             />
@@ -196,6 +208,7 @@ export default function CreateGroupModal({
                     ({ profileImage, firstName }, index) => {
                         return (
                             <div
+                                key={index}
                                 className="final-group-participants"
                                 onClick={(e) => {
                                     removeFromFinalGroupCreation(e, index);

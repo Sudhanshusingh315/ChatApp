@@ -43,7 +43,7 @@ export default function GroupSettings({ selectedChat }) {
                 {groupInfo?.participants?.map(
                     ({ id, firstName, lastName, profileImage }, index) => {
                         return (
-                            <div className="flex justify-start items-center gap-2">
+                            <div key={index} className="flex justify-start items-center gap-2">
                                 <img
                                     className="w-14 rounded-full aspect-square"
                                     src={profileImage}

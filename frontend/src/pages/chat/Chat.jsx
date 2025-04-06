@@ -297,9 +297,11 @@ export default function Chat() {
         setMessageSeen([]);
     };
     // send the message
+    console.log("chat Box", chatBox);
     console.log("unseen messages", messageUnSeen);
     console.log("messages", messages);
     const sendMessage = (message) => {
+        console.log("message that was sent", message);
         if (!message) return;
 
         // this will only run for images.
@@ -357,9 +359,12 @@ export default function Chat() {
             case chatTypes.groupChat:
                 emitInfo = {
                     ...emitInfo,
+
                     roomId: selectedChat?._id,
                     ...(message && { message }),
-                    ...(messageType && { messageType }),
+                    ...(messageType
+                        ? { messageType }
+                        : { messageType: "text" }),
                     ...(imageWithTextdata && { imageWithTextdata }),
                     senderId: userInfo?.userId,
                     chatType: chatTypes.groupChat,
@@ -367,6 +372,7 @@ export default function Chat() {
                     groupName: selectedChat?.groupName,
                     groupParticipantIds: selectedChat?.participants,
                 };
+                console.log("message context", emitInfo);
                 socket.emit("sendGroupMessages", emitInfo);
 
                 setMessages((prev) => {
@@ -475,7 +481,9 @@ export default function Chat() {
     ) => {
         switch (messageType) {
             case messageTypes.CONTACT:
-                console.log(`contact as a message ${contactAsAMessage}`);
+                console.log(
+                    `contact as a message ${JSON.stringify(contactAsAMessage)}`
+                );
                 return (
                     <>
                         <div className="contact-box">
@@ -490,7 +498,7 @@ export default function Chat() {
                                 <p className="font-semibold ">
                                     {Array.isArray(contactAsAMessage)
                                         ? `${contactAsAMessage[0]?.firstName} ${contactAsAMessage[0]?.lastName}`
-                                        : ""}
+                                        : `${contactAsAMessage?.firstName} ${contactAsAMessage?.lastName}`}
                                 </p>
                             </div>
                             <div className="contact-action-buttons">
@@ -536,7 +544,7 @@ export default function Chat() {
                         />
                         <div className="flex">
                             <p className="text-image">
-                                {imageWithText[0]?.text}
+                                {imageWithText[0]?.text || imageWithText.text}
                             </p>
                             <div className="self-end">
                                 {isSeen ? (
@@ -718,7 +726,6 @@ export default function Chat() {
         });
     }
     const handleSearchContactsGlobally = (e) => {
-        if (!e.target.value) return;
         const searchValue = e.target.value;
         setSearchContactGlobal((prev) => searchValue);
     };
@@ -903,7 +910,7 @@ export default function Chat() {
                                     </div>
                                 );
                             })}
-                        <input placeholder="search for people" type="text" />
+                        {/* <input placeholder="search for people" type="text" /> */}
                         {/* todo: later this would become a modal, IMPORTANT */}
                         <button
                             onClick={() => {
@@ -946,11 +953,13 @@ export default function Chat() {
 
                 <CreateGroupModal
                     open={groupCreationModalControl}
+                    setGroupCreationModalControl={setGroupCreationModalControl}
                     groupCreation={groupCreation}
                     groupName={groupName}
                     userInfo={userInfo}
                     handleGroupCreation={handleGroupCreation}
                     onClose={setGroupCreationModalControl}
+                    setChatBox={setChatBox}
                 />
             </div>
             {/* chat conponent */}

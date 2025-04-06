@@ -47,26 +47,7 @@ io.on("connection", (socket) => {
             chatType,
         } = emittedInfo;
 
-        /*
-        1) does this recipient, is it in my contacts? 
-            if not, add them to my contact. 
-            don't do anything otherwise.
-        */
-
         const contactUpdate = await AddToMyContacts(senderId, recipientId);
-
-        /*
-            //save the message to the db regardless if of the recipient online or not.
-            // remove async if error
-
-        // todo: implement this functionality because this is important.
-        1) if the user is online  
-            i) they have the chat opened -> emit with the socket and no "un-read messages".
-            ii) or they don't -> if chat isn't opened then emit the socket and save the data into local storage.
-        2) if they are offline we are anyway saving the data, but save it with unread messages.
-
-        */
-        // if ther receiver is online only then emit the message; otherwise save it to the database.
 
         const id = getSocketId(recipientId);
         if (id) {
@@ -99,10 +80,6 @@ io.on("connection", (socket) => {
         socket.join(roomId);
 
         console.log(`socket id ${socket?.id} joined room`);
-
-        // todo: handle default case here.
-
-        //     console.log(`socket id ${socket?.id} joined the room i.e ${roomId}`);
     });
     socket.on("sendGroupMessages", (emittedInfo) => {
         const { roomId } = emittedInfo;

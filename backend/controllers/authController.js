@@ -5,8 +5,6 @@ import { generateToken } from "../utils/token.js";
 
 export const signup = async (req, res) => {
     try {
-        // todo: handle if the user is already registered here.
-        // todo: hash the password befor storing it in the database.
         const { email, password } = req.body;
         console.log(`email ${email} password ${password}`);
         if (!email || !password) {
@@ -85,7 +83,7 @@ export const profileSetup = async (req, res) => {
                 new: true,
             }
         );
-        console.log('user',user);
+        console.log("user", user);
         return res.status(201).json({
             success: true,
             update: user,
