@@ -3,6 +3,11 @@
 # Features
 
 <h2>Front Page</h2>
+<img src="./frontend/src/assets/project-screenshot/frontpage.png">
+
+<img src="./frontend/src/assets/project-screenshot/frontPage2.png">
+
+
 
 <h2>Live Satus</h2>
 
