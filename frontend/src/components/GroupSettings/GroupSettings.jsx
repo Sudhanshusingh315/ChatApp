@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./styles.css";
 import axios from "axios";
+import { configEnv } from "../../constants/contants";
 
 export default function GroupSettings({ selectedChat }) {
     console.log("selected chat", selectedChat);
@@ -12,7 +13,7 @@ export default function GroupSettings({ selectedChat }) {
             const {
                 data: { data },
             } = await axios({
-                url: "/api/messages/gorupMessageDetails",
+                url: `${configEnv.BASE_URL}/api/messages/gorupMessageDetails`,
                 method: "post",
                 data: {
                     groupId: _id,
@@ -43,7 +44,10 @@ export default function GroupSettings({ selectedChat }) {
                 {groupInfo?.participants?.map(
                     ({ id, firstName, lastName, profileImage }, index) => {
                         return (
-                            <div key={index} className="flex justify-start items-center gap-2">
+                            <div
+                                key={index}
+                                className="flex justify-start items-center gap-2"
+                            >
                                 <img
                                     className="w-14 rounded-full aspect-square"
                                     src={profileImage}

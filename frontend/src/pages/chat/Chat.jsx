@@ -13,7 +13,12 @@ import {
     getInitMessages,
     getInitMessagesGroup,
 } from "../../features/messages/messageSlice";
-import { chatTypes, fileFormats, messageTypes } from "../../constants/contants";
+import {
+    chatTypes,
+    configEnv,
+    fileFormats,
+    messageTypes,
+} from "../../constants/contants";
 import { storage } from "../../utils/firebase/firebase";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { ChatBox } from "../../components/Chatbox/Chatbox";
@@ -210,7 +215,7 @@ export default function Chat() {
         setIsChatBoxLoaded(true);
         (async function () {
             const { data } = await axios.get(
-                `/api/searchContact/${userInfo?.userId}/myContact`,
+                `${configEnv.BASE_URL}/api/searchContact/${userInfo?.userId}/myContact`,
                 {
                     headers: { Authorization: `Bearer ${userInfo?.token}` },
                 }
@@ -768,7 +773,7 @@ export default function Chat() {
         setIsChatBoxLoaded(true);
         (async function () {
             const { data } = await axios.get(
-                `/api/searchContact/${userInfo?.userId}/myContact`,
+                `${configEnv.BASE_URL}/api/searchContact/${userInfo?.userId}/myContact`,
                 {
                     headers: { Authorization: `Bearer ${userInfo?.token}` },
                 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./styles.css";
 import axios from "axios";
+import { configEnv } from "../../../constants/contants";
 export default function ScheduleMessagesList({
     open,
     onClose,
@@ -21,7 +22,7 @@ export default function ScheduleMessagesList({
 
         async function getScheduledMessages(data) {
             const response = await axios({
-                url: `/api/messages/get-scheduled-messages`,
+                url: `${configEnv.BASE_URL}/api/messages/get-scheduled-messages`,
                 method: "post",
                 data,
             });

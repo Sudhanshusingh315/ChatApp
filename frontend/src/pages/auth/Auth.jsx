@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { authLogin } from "../../features/auth/authSlice";
+import { configEnv } from "../../constants/contants";
 
 export default function Auth() {
     const [email, setEmail] = useState("");
@@ -27,7 +28,7 @@ export default function Auth() {
             navigate("/");
         }
     };
-
+    console.log("config base url",configEnv.BASE_URL);
     const handleGuestUserTwo = async () => {
         // only for login
         let email = import.meta.env.VITE_USER2_EMAIL;

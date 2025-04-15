@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { messageTypes } from "../../constants/contants";
+import { configEnv, messageTypes } from "../../constants/contants";
 import pdfImage from "../../assets/pdf-svgrepo-com.svg";
 import contactImage from "../../assets/contact2-svgrepo-com.svg";
 export default function SectionDetails({ selectedChat, userInfo }) {
@@ -17,7 +17,7 @@ export default function SectionDetails({ selectedChat, userInfo }) {
             const {
                 data: { data },
             } = await axios({
-                url: "/api/messages/getAllMedia",
+                url: `${configEnv.BASE_URL}/api/messages/getAllMedia`,
                 method: "post",
                 data: result,
             });

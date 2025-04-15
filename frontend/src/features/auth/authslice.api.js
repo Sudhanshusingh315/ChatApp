@@ -1,10 +1,11 @@
 import axios from "axios";
+import { configEnv } from "../../constants/contants";
 
 // login
 export async function userLogin(data) {
     return await axios({
         method: "post",
-        url: "/api/auth/login",
+        url: `${configEnv.BASE_URL}/api/auth/login`,
         data,
     });
 }
@@ -15,7 +16,7 @@ export async function userLogin(data) {
 export async function userSignup(data) {
     return await axios({
         method: "post",
-        url: "/api/auth/signup",
+        url: `${configEnv.BASE_URL}/api/auth/signup`,
         data: {
             email,
             password,
@@ -26,7 +27,7 @@ export async function userSignup(data) {
 export async function userProfileSetup(data) {
     return await axios({
         method: "post",
-        url: "/api/auth/profileSetup",
+        url: `${configEnv.BASE_URL}/api/auth/profileSetup`,
         data: data,
     });
 }

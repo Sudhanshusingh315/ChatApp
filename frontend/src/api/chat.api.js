@@ -1,4 +1,5 @@
 import axios from "axios";
+import { configEnv } from "../constants/contants";
 
 export const createGroup = async (
     participants,
@@ -17,7 +18,7 @@ export const createGroup = async (
     console.log("group data", data);
 
     const createdGroup = await axios({
-        url: `/api/messages/${adminId}/createGroup`,
+        url: `${configEnv.BASE_URL}/api/messages/${adminId}/createGroup`,
         method: "post",
         data,
     });
@@ -27,7 +28,7 @@ export const createGroup = async (
 
 export const sendScheduledAt = async (data) => {
     const result = await axios({
-        url: "/api/messages/scheduled-message",
+        url: `${configEnv.BASE_URL}/api/messages/scheduled-message`,
         method: "post",
         data,
     });
