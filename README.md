@@ -1,4 +1,4 @@
-# Chat Application
+# Meow Talk
 
 # Features
 
